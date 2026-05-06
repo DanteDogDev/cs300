@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <GL/glew.h>
-#include <GL/GL.h>
+#include <GL/gl.h>
 #include <SDL3/SDL.h>
 
 #include "OGLDebug.h"

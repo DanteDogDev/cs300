@@ -7,6 +7,11 @@ add_requires("libsdl3", "glew", "glm")
 
 set_languages("c++17")
 
+if is_mode("debug") then
+	set_optimize("none")
+	add_cxxflags("-Og")
+end
+
 target("cs300", function()
     set_kind("binary")
     

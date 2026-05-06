@@ -16,3 +16,5 @@ x86/
 
 CS300/build/
 compile_commands.json
+.xmake
+.cache
