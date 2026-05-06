@@ -1,0 +1,18 @@
+# Visual Studio hidden folders
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Build artifacts
+*.exe
+*.pdb
+*.ilk
+*.obj
+*.log
+*.tlog
+*.lastbuildstate
+
+CS300/build/
+compile_commands.json
