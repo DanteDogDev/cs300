@@ -2,8 +2,6 @@
 
 #include "file.hpp"
 
-#include <memory>
-
 Shader::Shader(std::string_view name, std::string_view vertex_path, std::string_view fragment_path) {
 	m.name = std::string(name);
 	m.vertex_path = std::string(vertex_path);
@@ -12,7 +10,7 @@ Shader::Shader(std::string_view name, std::string_view vertex_path, std::string_
 }
 
 Shader::~Shader() {
-	glDeleteProgram(m.shader_program);
+	// glDeleteProgram(m.shader_program); // TODO:
 }
 
 auto Shader::compileShader(const std::string& source, GLenum shader_type) -> GLint {
@@ -92,6 +90,6 @@ void Shader::unbind() const {
 	glUseProgram(0);
 }
 
-auto Shader::makeDefault() -> std::shared_ptr<Shader> {
-	return std::make_shared<Shader>(Shader("default", "./data/shaders/default.vert", "./data/shaders/default.frag"));
+auto Shader::makeDefault() -> Shader {
+	return {"default", "./data/shaders/default.vert", "./data/shaders/default.frag"};
 }

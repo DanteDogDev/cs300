@@ -27,7 +27,9 @@ public:
 	void unbind() const;
 
 	/* Creates a Default Shader */
-	static auto makeDefault() -> std::shared_ptr<Shader>;
+	static auto makeDefault() -> Shader;
+
+	[[nodiscard]] auto getProgram() const { return m.shader_program; }
 
 private:
 	auto compileShader(const std::string& source, GLenum shader_type) -> GLint;
