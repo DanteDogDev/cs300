@@ -1,21 +1,21 @@
+#include "OGLDebug.h"
+
+#include <SDL3/SDL.h>
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
-
+// clang-format off
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <SDL3/SDL.h>
+// clang-format on
 
-#include "OGLDebug.h"
-
-static int     winID;
+static int winID;
 static GLsizei WIDTH = 1280;
 static GLsizei HEIGHT = 720;
 
-GLuint CreateShader(GLenum eShaderType, const std::string& strShaderFile)
-{
-	GLuint       shader = glCreateShader(eShaderType);
+GLuint CreateShader(GLenum eShaderType, const std::string& strShaderFile) {
+	GLuint shader = glCreateShader(eShaderType);
 	const char* strFileData = strShaderFile.c_str();
 	glShaderSource(shader, 1, &strFileData, NULL);
 
@@ -23,8 +23,7 @@ GLuint CreateShader(GLenum eShaderType, const std::string& strShaderFile)
 
 	GLint status;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-	if (status == GL_FALSE)
-	{
+	if (status == GL_FALSE) {
 		GLint infoLogLength;
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
 
@@ -32,17 +31,10 @@ GLuint CreateShader(GLenum eShaderType, const std::string& strShaderFile)
 		glGetShaderInfoLog(shader, infoLogLength, NULL, strInfoLog);
 
 		const char* strShaderType = NULL;
-		switch (eShaderType)
-		{
-		case GL_VERTEX_SHADER:
-			strShaderType = "vertex";
-			break;
-		case GL_GEOMETRY_SHADER:
-			strShaderType = "geometry";
-			break;
-		case GL_FRAGMENT_SHADER:
-			strShaderType = "fragment";
-			break;
+		switch (eShaderType) {
+			case GL_VERTEX_SHADER: strShaderType = "vertex"; break;
+			case GL_GEOMETRY_SHADER: strShaderType = "geometry"; break;
+			case GL_FRAGMENT_SHADER: strShaderType = "fragment"; break;
 		}
 
 		fprintf(stderr, "Compile failure in %s shader:\n%s\n", strShaderType, strInfoLog);
@@ -52,19 +44,18 @@ GLuint CreateShader(GLenum eShaderType, const std::string& strShaderFile)
 	return shader;
 }
 
-GLuint CreateProgram(const std::vector<GLuint>& shaderList)
-{
+GLuint CreateProgram(const std::vector<GLuint>& shaderList) {
 	GLuint program = glCreateProgram();
 
-	for (size_t iLoop = 0; iLoop < shaderList.size(); iLoop++)
+	for (size_t iLoop = 0; iLoop < shaderList.size(); iLoop++) {
 		glAttachShader(program, shaderList[iLoop]);
+	}
 
 	glLinkProgram(program);
 
 	GLint status;
 	glGetProgramiv(program, GL_LINK_STATUS, &status);
-	if (status == GL_FALSE)
-	{
+	if (status == GL_FALSE) {
 		GLint infoLogLength;
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLogLength);
 
@@ -74,8 +65,9 @@ GLuint CreateProgram(const std::vector<GLuint>& shaderList)
 		delete[] strInfoLog;
 	}
 
-	for (size_t iLoop = 0; iLoop < shaderList.size(); iLoop++)
+	for (size_t iLoop = 0; iLoop < shaderList.size(); iLoop++) {
 		glDetachShader(program, shaderList[iLoop]);
+	}
 
 	return program;
 }
@@ -100,26 +92,24 @@ const std::string strFragmentShader = R"(
 	   outputColor = vec4(color, 1.0f);
 	})";
 
-struct Vertex
-{
+struct Vertex {
 	float pos[4];
 	float color[3];
 };
 
 const Vertex vertexData[3] = {
-	{{0.75f, 0.75f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
-	{{0.75f, -0.75f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
-	{{-0.75f, -0.75f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}} };
+  {  {0.75f, 0.75f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+  { {0.75f, -0.75f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+  {{-0.75f, -0.75f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}}
+};
 
-namespace
-{
-	GLuint theProgram;
-	GLuint vertexBufferObject;
-	GLuint vao;
+namespace {
+GLuint theProgram;
+GLuint vertexBufferObject;
+GLuint vao;
 }
 
-void InitializeProgram()
-{
+void InitializeProgram() {
 	std::vector<GLuint> shaderList;
 
 	shaderList.push_back(CreateShader(GL_VERTEX_SHADER, strVertexShader));
@@ -130,9 +120,7 @@ void InitializeProgram()
 	std::for_each(shaderList.begin(), shaderList.end(), glDeleteShader);
 }
 
-
-void InitializeBuffers()
-{
+void InitializeBuffers() {
 	// VAO
 	glGenVertexArrays(1, &vao);
 
@@ -155,17 +143,15 @@ void InitializeBuffers()
 	glBindVertexArray(0);
 }
 
-//Called after the window and OpenGL are initialized. Called exactly once, before the main loop.
-void init()
-{
+// Called after the window and OpenGL are initialized. Called exactly once, before the main loop.
+void init() {
 	InitializeProgram();
 	InitializeBuffers();
 }
 
-//Called to update the display.
-//You should call SDL_GL_SwapWindow after all of your rendering to display what you rendered.
-void display(SDL_Window* window)
-{
+// Called to update the display.
+// You should call SDL_GL_SwapWindow after all of your rendering to display what you rendered.
+void display(SDL_Window* window) {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -183,8 +169,7 @@ void display(SDL_Window* window)
 	SDL_GL_SwapWindow(window);
 }
 
-void cleanup()
-{
+void cleanup() {
 	// Delete the program
 	glDeleteProgram(theProgram);
 	// Delete the VBOs
@@ -193,17 +178,14 @@ void cleanup()
 	glDeleteVertexArrays(1, &vao);
 }
 
-int main(int argc, char* args[])
-{
-	if (!SDL_Init(SDL_INIT_VIDEO))
-	{
+int main(int argc, char* args[]) {
+	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		std::cout << "Could not initialize SDL: " << SDL_GetError() << std::endl;
 		exit(1);
 	}
 
 	SDL_Window* window = SDL_CreateWindow("CS300", WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
-	if (window == nullptr)
-	{
+	if (window == nullptr) {
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
 		exit(1);
@@ -213,8 +195,7 @@ int main(int argc, char* args[])
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	SDL_GLContext context_ = SDL_GL_CreateContext(window);
-	if (context_ == nullptr)
-	{
+	if (context_ == nullptr) {
 		SDL_DestroyWindow(window);
 		std::cout << "SDL_GL_CreateContext Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
@@ -222,8 +203,7 @@ int main(int argc, char* args[])
 	}
 
 	glewExperimental = true;
-	if (glewInit() != GLEW_OK)
-	{
+	if (glewInit() != GLEW_OK) {
 		SDL_GL_DestroyContext(context_);
 		SDL_DestroyWindow(window);
 		std::cout << "GLEW Error: Failed to init" << std::endl;
@@ -247,33 +227,26 @@ int main(int argc, char* args[])
 	glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &totalMemKb);
 	std::cout << "GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX: " << totalMemKb << std::endl;
 
-	std::cout << std::endl
-		<< "Extensions: "
-		<< std::endl;
+	std::cout << std::endl << "Extensions: " << std::endl;
 	int numExtensions;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-	for (int i = 0; i < numExtensions; i++)
-	{
+	for (int i = 0; i < numExtensions; i++) {
 		std::cout << glGetStringi(GL_EXTENSIONS, i) << std::endl;
 	}
 
 	init();
 
 	SDL_Event event;
-	bool      quit = false;
-	while (!quit)
-	{
-		while (SDL_PollEvent(&event))
-		{
-			switch (event.type)
-			{
-			case SDL_EVENT_QUIT:
-				quit = true;
-				break;
-			case SDL_EVENT_KEY_DOWN:
-				if (event.key.type == SDL_SCANCODE_ESCAPE)
-					quit = true;
-				break;
+	bool quit = false;
+	while (!quit) {
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_EVENT_QUIT: quit = true; break;
+				case SDL_EVENT_KEY_DOWN:
+					if (event.key.type == SDL_SCANCODE_ESCAPE) {
+						quit = true;
+					}
+					break;
 			}
 		}
 
