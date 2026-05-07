@@ -16,6 +16,10 @@ static int winID;
 static GLsizei WIDTH = 1280;
 static GLsizei HEIGHT = 720;
 
+std::unique_ptr<Shader> default_shader;
+GLuint vertexBufferObject;
+GLuint vao;
+
 struct Vertex {
 	float pos[4];
 	float color[3];
@@ -26,16 +30,6 @@ const Vertex vertexData[3] = {
   { {0.75f, -0.75f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
   {{-0.75f, -0.75f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}}
 };
-
-namespace {
-std::unique_ptr<Shader> default_shader;
-GLuint vertexBufferObject;
-GLuint vao;
-}
-
-void InitializeProgram() {
-	default_shader = std::make_unique<Shader>(Shader::makeDefault());
-}
 
 void InitializeBuffers() {
 	// VAO
@@ -62,7 +56,7 @@ void InitializeBuffers() {
 
 // Called after the window and OpenGL are initialized. Called exactly once, before the main loop.
 void init() {
-	InitializeProgram();
+	default_shader = std::make_unique<Shader>(Shader::makeDefault());
 	InitializeBuffers();
 }
 

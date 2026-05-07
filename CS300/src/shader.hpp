@@ -1,5 +1,13 @@
+/**
+ * @file shader.hpp
+ * @author Dante Harper
+ * @date 07 May 26
+ *
+ * @brief Opengl Mesh Abstraction
+ * @todo support more than just vertex and fragment?
+ */
+
 #pragma once
-#include <memory>
 #include <string>
 
 // clang-format off
@@ -28,8 +36,6 @@ public:
 
 	/* Creates a Default Shader */
 	static auto makeDefault() -> Shader;
-
-	[[nodiscard]] auto getProgram() const { return m.shader_program; }
 
 private:
 	auto compileShader(const std::string& source, GLenum shader_type) -> GLint;

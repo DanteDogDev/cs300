@@ -10,7 +10,7 @@ Shader::Shader(std::string_view name, std::string_view vertex_path, std::string_
 }
 
 Shader::~Shader() {
-	// glDeleteProgram(m.shader_program); // TODO:
+	glDeleteProgram(m.shader_program);
 }
 
 auto Shader::compileShader(const std::string& source, GLenum shader_type) -> GLint {
