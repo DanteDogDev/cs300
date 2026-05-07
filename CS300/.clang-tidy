@@ -89,7 +89,6 @@ modernize-shrink-to-fit,
 misc-throw-by-value-catch-by-reference,
 
 cppcoreguidelines-avoid-goto,
-cppcoreguidelines-init-variables,
 cppcoreguidelines-no-malloc,
 cppcoreguidelines-pro-type-cstyle-cast,
 
