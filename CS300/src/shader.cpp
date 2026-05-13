@@ -2,6 +2,8 @@
 
 #include "file.hpp"
 
+#include <memory>
+
 Shader::Shader(std::string_view name, std::string_view vertex_path, std::string_view fragment_path) {
 	m.name = std::string(name);
 	m.vertex_path = std::string(vertex_path);
@@ -92,6 +94,7 @@ void Shader::unbind() const {
 	glUseProgram(0);
 }
 
-auto Shader::makeDefault() -> Shader {
-	return {"default", "./data/shaders/default.vert", "./data/shaders/default.frag"};
+auto Shader::makeDefault() -> std::unique_ptr<Shader> {
+	auto* ptr = new Shader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
+	return std::unique_ptr<Shader>(ptr);
 }

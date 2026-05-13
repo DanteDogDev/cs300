@@ -12,6 +12,7 @@
           clang
           gcc
           xmake
+					gdb
           wayland
           wayland-protocols
           wayland-scanner
