@@ -2,6 +2,8 @@
 
 #include "file.hpp"
 
+#include <memory>
+
 Shader::Shader(std::string_view name, std::string_view vertex_path, std::string_view fragment_path) {
 	m.name = std::string(name);
 	m.vertex_path = std::string(vertex_path);
@@ -10,6 +12,7 @@ Shader::Shader(std::string_view name, std::string_view vertex_path, std::string_
 }
 
 Shader::~Shader() {
+	std::printf("Destroying Shader\n");
 	glDeleteProgram(m.shader_program);
 }
 
@@ -43,6 +46,7 @@ auto Shader::compileShader(const std::string& source, GLenum shader_type) -> GLi
 }
 
 void Shader::compile() {
+	std::printf("Compiling Shader\n");
 	m.shader_program = glCreateProgram();
 
 	// load the shaders
@@ -90,6 +94,7 @@ void Shader::unbind() const {
 	glUseProgram(0);
 }
 
-auto Shader::makeDefault() -> Shader {
-	return {"default", "./data/shaders/default.vert", "./data/shaders/default.frag"};
+auto Shader::makeDefault() -> std::unique_ptr<Shader> {
+	auto* ptr = new Shader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
+	return std::unique_ptr<Shader>(ptr);
 }

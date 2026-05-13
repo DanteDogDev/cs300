@@ -35,7 +35,12 @@ public:
 	void unbind() const;
 
 	/* Creates a Default Shader */
-	static auto makeDefault() -> Shader;
+	static auto makeDefault() -> std::unique_ptr<Shader>;
+
+	[[nodiscard]]
+	auto getProgram() const {
+		return m.shader_program;
+	}
 
 private:
 	auto compileShader(const std::string& source, GLenum shader_type) -> GLint;
