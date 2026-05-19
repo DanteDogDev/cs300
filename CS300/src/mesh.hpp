@@ -8,7 +8,6 @@
 
 #include "OGLDebug.h"
 
-#include <cstdio>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -18,20 +17,20 @@
 #include <GL/gl.h>
 // clang-format on
 
-struct myVertex {
+struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 color;
 };
 
 class Mesh {
 	struct {
-		std::vector<myVertex> vertices;
+		std::vector<Vertex> vertices;
 		GLuint vbo = 0;
 		GLuint vao = 0;
 	} m;
 
 public:
-	Mesh(std::vector<myVertex> verts) {
+	Mesh(std::vector<Vertex> verts) {
 		m.vertices = std::move(verts);
 
 		glGenVertexArrays(1, &m.vao);
@@ -40,13 +39,13 @@ public:
 		glBindVertexArray(m.vao);
 		glBindBuffer(GL_ARRAY_BUFFER, m.vbo);
 
-		glBufferData(GL_ARRAY_BUFFER, m.vertices.size() * sizeof(myVertex), m.vertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, m.vertices.size() * sizeof(Vertex), m.vertices.data(), GL_STATIC_DRAW);
 
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(myVertex), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
 
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(myVertex), (void*)offsetof(myVertex, color));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
 
 		glBindVertexArray(0);
 	}
@@ -69,7 +68,7 @@ public:
 	}
 
 	static auto createTri() -> std::unique_ptr<Mesh> {
-		std::vector<myVertex> verts = {
+		std::vector<Vertex> verts = {
 		  {  {0.75f, 0.75f, 0.0f}, {1.0f, 0.0f, 0.0f}},
 		  { {0.75f, -0.75f, 0.0f}, {0.0f, 1.0f, 0.0f}},
 		  {{-0.75f, -0.75f, 0.0f}, {0.0f, 0.0f, 1.0f}}

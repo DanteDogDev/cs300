@@ -1,5 +1,7 @@
 #include "OGLDebug.h"
+#include "SDL3/SDL_events.h"
 #include "mesh.hpp"
+#include "model.hpp"
 #include "shader.hpp"
 
 #include <SDL3/SDL.h>
@@ -10,23 +12,27 @@
 #include <GL/gl.h>
 // clang-format on
 
-static int winID;
-static GLsizei WIDTH = 1280;
-static GLsizei HEIGHT = 720;
+static int win_id;
+static GLsizei width = 1280;
+static GLsizei height = 720;
 
 namespace {
 std::unique_ptr<Shader> default_shader;
 std::unique_ptr<Mesh> tri_mesh;
+std::unique_ptr<Model> model;
+
 }
 
 void init() {
+	model = Model::create("./data/meshes/suzanne.obj");
 	default_shader = Shader::makeDefault();
-	tri_mesh = Mesh::createTri();
+	tri_mesh = std::make_unique<Mesh>(model->getVertices());
 }
 
 void cleanup() {
 	default_shader = nullptr;
 	tri_mesh = nullptr;
+	model = nullptr;
 }
 
 void display(SDL_Window* window) {
@@ -46,7 +52,7 @@ auto main(int argc, char* args[]) -> int {
 		exit(1);
 	}
 
-	SDL_Window* window = SDL_CreateWindow("CS300", WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
+	SDL_Window* window = SDL_CreateWindow("CS300", width, height, SDL_WINDOW_OPENGL);
 	if (window == nullptr) {
 		std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << '\n';
 		SDL_Quit();
