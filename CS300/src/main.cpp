@@ -4,6 +4,10 @@
 #include "model.hpp"
 #include "shader.hpp"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+#undef TINYOBJLOADER_IMPLEMENTATION
+
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <memory>
@@ -20,13 +24,12 @@ namespace {
 std::unique_ptr<Shader> default_shader;
 std::unique_ptr<Mesh> tri_mesh;
 std::unique_ptr<Model> model;
-
 }
 
 void init() {
 	model = Model::create("./data/meshes/suzanne.obj");
-	default_shader = Shader::makeDefault();
-	tri_mesh = std::make_unique<Mesh>(model->getVertices());
+	default_shader = Shader::createDefault();
+	tri_mesh = Mesh::create(model->getVertices());
 }
 
 void cleanup() {

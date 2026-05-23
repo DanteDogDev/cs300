@@ -94,7 +94,13 @@ void Shader::unbind() const {
 	glUseProgram(0);
 }
 
-auto Shader::makeDefault() -> std::unique_ptr<Shader> {
+auto Shader::createDefault() -> std::unique_ptr<Shader> {
 	auto* ptr = new Shader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
+	return std::unique_ptr<Shader>(ptr);
+}
+
+auto Shader::create(std::string_view name, std::string_view vertex_path, std::string_view fragment_path)
+    -> std::unique_ptr<Shader> {
+	auto* ptr = new Shader(name, vertex_path, fragment_path);
 	return std::unique_ptr<Shader>(ptr);
 }

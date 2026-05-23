@@ -25,8 +25,6 @@ class Shader {
 	} m;
 
 public:
-	Shader(std::string_view name, std::string_view vertex_path, std::string_view fragment_path);
-
 	~Shader();
 
 	/* Binds shader :3*/
@@ -36,14 +34,16 @@ public:
 	void unbind() const;
 
 	/* Creates a Default Shader */
-	static auto makeDefault() -> std::unique_ptr<Shader>;
+	static auto createDefault() -> std::unique_ptr<Shader>;
 
+	static auto create(std::string_view name, std::string_view vertex_path, std::string_view fragment_path) -> std::unique_ptr<Shader>;
 	[[nodiscard]]
 	auto getProgram() const {
 		return m.shader_program;
 	}
 
 private:
+	Shader(std::string_view name, std::string_view vertex_path, std::string_view fragment_path);
 	auto compileShader(const std::string& source, GLenum shader_type) -> GLint;
 
 	/* Compiles the while shader program together*/
