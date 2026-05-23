@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "OGLDebug.h"
+#include "cs300/OGLDebug.h"
+#include "tiny_obj_loader.h"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -44,4 +45,20 @@ public:
 
 private:
 	Mesh(std::vector<Vertex> verts);
+};
+
+class Model {
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+
+public:
+	Model(std::string_view filepath);
+	~Model() = default;
+
+	auto getVertices() -> std::vector<Vertex>;
+
+	static auto create(std::string_view path) -> std::unique_ptr<Model>;
+
+private:
 };

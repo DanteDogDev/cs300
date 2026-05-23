@@ -36,6 +36,7 @@ public:
 	static auto createDefault() -> std::unique_ptr<Shader>;
 
 	static auto create(std::string_view vertex_path, std::string_view fragment_path) -> std::unique_ptr<Shader>;
+
 	[[nodiscard]]
 	auto getProgram() const {
 		return m.shader_program;

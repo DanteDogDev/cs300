@@ -1,7 +1,7 @@
-#include "OGLDebug.h"
 #include "SDL3/SDL_events.h"
+#include "cs300/OGLDebug.h"
 #include "mesh.hpp"
-#include "model.hpp"
+#include "object.hpp"
 #include "shader.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -21,33 +21,28 @@ static int win_id;
 static GLsizei width = 1280;
 static GLsizei height = 720;
 
-namespace {
-std::unique_ptr<Shader> default_shader;
-std::unique_ptr<Mesh> tri_mesh;
-std::unique_ptr<Model> model;
-}
+static std::unique_ptr<Object> object;
+
+// Use the new ResourceManager for all OpenGL resources
 
 void init() {
-	model = Model::create("./data/meshes/suzanne.obj");
-	default_shader = Shader::createDefault();
-	tri_mesh = Mesh::create(model->getVertices());
-	Resources::addShader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
+	// Ensure the shader is loaded into the ResourceManager by its name
+	ResourceManager::instance().getShader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
+
+	object = std::make_unique<Object>("Suzanne", "./data/meshes/suzanne.obj", "default");
 }
 
 void cleanup() {
-	Resources::clear();
-	default_shader = nullptr;
-	tri_mesh = nullptr;
-	model = nullptr;
+	ResourceManager::instance().clear();
 }
 
 void display(SDL_Window* window) {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	default_shader->bind();
-	tri_mesh->draw();
-	default_shader->unbind();
+	if (object) {
+		object->draw();
+	}
 
 	SDL_GL_SwapWindow(window);
 }
