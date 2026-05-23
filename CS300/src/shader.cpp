@@ -4,8 +4,7 @@
 
 #include <memory>
 
-Shader::Shader(std::string_view name, std::string_view vertex_path, std::string_view fragment_path) {
-	m.name = std::string(name);
+Shader::Shader(std::string_view vertex_path, std::string_view fragment_path) {
 	m.vertex_path = std::string(vertex_path);
 	m.fragment_path = std::string(fragment_path);
 	compile();
@@ -95,12 +94,11 @@ void Shader::unbind() const {
 }
 
 auto Shader::createDefault() -> std::unique_ptr<Shader> {
-	auto* ptr = new Shader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
+	auto* ptr = new Shader("./data/shaders/default.vert", "./data/shaders/default.frag");
 	return std::unique_ptr<Shader>(ptr);
 }
 
-auto Shader::create(std::string_view name, std::string_view vertex_path, std::string_view fragment_path)
-    -> std::unique_ptr<Shader> {
-	auto* ptr = new Shader(name, vertex_path, fragment_path);
+auto Shader::create(std::string_view vertex_path, std::string_view fragment_path) -> std::unique_ptr<Shader> {
+	auto* ptr = new Shader(vertex_path, fragment_path);
 	return std::unique_ptr<Shader>(ptr);
 }

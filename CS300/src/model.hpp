@@ -18,12 +18,12 @@ class Model {
 	std::vector<tinyobj::material_t> materials;
 
 public:
+	Model(std::string_view filepath);
 	~Model() = default;
 
 	auto getVertices() -> std::vector<Vertex>;
 
-	static auto create(const std::string& path) -> std::unique_ptr<Model>;
+	static auto create(std::string_view path) -> std::unique_ptr<Model>;
 
 private:
-	Model(const std::string& filepath);
 };

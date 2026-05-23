@@ -30,18 +30,18 @@ auto Model::getVertices() -> std::vector<Vertex> {
 	return vertices;
 }
 
-auto Model::create(const std::string& path) -> std::unique_ptr<Model> {
+auto Model::create(std::string_view path) -> std::unique_ptr<Model> {
 	auto* ptr = new Model(path);
 	return std::unique_ptr<Model>(ptr);
 }
 
-Model::Model(const std::string& filepath) {
+Model::Model(std::string_view filepath) {
 	tinyobj::ObjReaderConfig reader_config;
 	reader_config.triangulate = true;
 
 	tinyobj::ObjReader reader;
 
-	if (!reader.ParseFromFile(filepath, reader_config)) {
+	if (!reader.ParseFromFile(std::string(filepath), reader_config)) {
 		if (!reader.Error().empty()) {
 			throw std::runtime_error("TinyOBJ Error: " + reader.Error());
 		}

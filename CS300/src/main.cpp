@@ -5,6 +5,7 @@
 #include "shader.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
+#include "resources.hpp"
 #include "tiny_obj_loader.h"
 #undef TINYOBJLOADER_IMPLEMENTATION
 
@@ -30,9 +31,11 @@ void init() {
 	model = Model::create("./data/meshes/suzanne.obj");
 	default_shader = Shader::createDefault();
 	tri_mesh = Mesh::create(model->getVertices());
+	Resources::addShader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
 }
 
 void cleanup() {
+	Resources::clear();
 	default_shader = nullptr;
 	tri_mesh = nullptr;
 	model = nullptr;
