@@ -8,6 +8,7 @@
  */
 
 #pragma once
+#include <glm/glm.hpp>    // Include glm for glm::mat4
 #include <memory>
 #include <string>
 
@@ -31,6 +32,9 @@ public:
 
 	/* Unbinds shader :(*/
 	void unbind() const;
+
+	/* Sets a mat4 uniform */
+	void setUniformMat4(const std::string& name, const glm::mat4& matrix) const;
 
 	/* Creates a Default Shader */
 	static auto createDefault() -> std::unique_ptr<Shader>;

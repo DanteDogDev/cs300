@@ -22,8 +22,14 @@ class ResourceManager {
 
 public:
 	static auto instance() -> ResourceManager&;
+	void init();    // New: Initialize default resources
 	void clear();
 
 	auto getMesh(const std::string& path) -> Mesh*;
-	auto getShader(const std::string& name, const std::string& vert = "", const std::string& frag = "") -> Shader*;
+	auto getShader(const std::string& name) -> Shader*;
+
+
+	void addShader(const std::string& name, const std::string& vert = "", const std::string& frag = "");
+	void addMesh(const std::string& path);
+	void addMesh(const std::string& name, std::vector<Vertex>& vertices);
 };

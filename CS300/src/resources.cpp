@@ -1,5 +1,11 @@
 #include "resources.hpp"
 
+#include "glm/common.hpp"
+#include "mesh.hpp"
+
+#include <iostream>    // For logging errors
+#include <utility>
+
 auto ResourceManager::instance() -> ResourceManager& {
 	static ResourceManager inst;
 	return inst;
@@ -10,28 +16,45 @@ void ResourceManager::clear() {
 	shaders.clear();
 }
 
-auto ResourceManager::getMesh(const std::string& path) -> Mesh* {
-	auto it = meshes.find(path);
-	if (it != meshes.end()) {
-		return it->second.get();
-	}
-	auto model = Model(path);
-	auto mesh = Mesh::create(model.getVertices());
-	Mesh* ptr = mesh.get();
-	meshes[path] = std::move(mesh);
-	return ptr;
+void ResourceManager::init() {
+	std::vector<Vertex> default_verts = {
+	  {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+	  { {0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	  {  {0.0f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	};
+	addMesh("default", default_verts);
+	addShader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
 }
 
-auto ResourceManager::getShader(const std::string& name, const std::string& vert, const std::string& frag) -> Shader* {
-	auto it = shaders.find(name);
-	if (it != shaders.end()) {
-		return it->second.get();
+auto ResourceManager::getShader(const std::string& name) -> Shader* {
+	if (shaders.find(name) != shaders.end()) {
+		return shaders["default"].get();
 	}
-	if (vert.empty() || frag.empty()) {
-		return nullptr;
+	return shaders[name].get();
+}
+
+auto ResourceManager::getMesh(const std::string& path) -> Mesh* {
+	if (meshes.find(path) == meshes.end()) {
+		try {
+			addMesh(path);
+		} catch (...) { return meshes["default"].get(); }
 	}
+	return meshes[path].get();
+}
+
+void ResourceManager::addShader(const std::string& name, const std::string& vert, const std::string& frag) {
 	auto shader = Shader::create(vert, frag);
 	Shader* ptr = shader.get();
 	shaders[name] = std::move(shader);
-	return ptr;
+}
+
+void ResourceManager::addMesh(const std::string& path) {
+	Model model = Model(path);
+	auto mesh = Mesh::create(model.getVertices());
+	meshes[path] = std::move(mesh);
+}
+
+void ResourceManager::addMesh(const std::string& name, std::vector<Vertex>& vertices) {
+	auto mesh = Mesh::create(vertices);
+	meshes[name] = std::move(mesh);
 }

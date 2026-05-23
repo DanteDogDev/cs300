@@ -2,6 +2,8 @@
 
 #include "file.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <memory>
 
 Shader::Shader(std::string_view vertex_path, std::string_view fragment_path) {
@@ -13,6 +15,15 @@ Shader::Shader(std::string_view vertex_path, std::string_view fragment_path) {
 Shader::~Shader() {
 	std::printf("Destroying Shader\n");
 	glDeleteProgram(m.shader_program);
+}
+
+void Shader::setUniformMat4(const std::string& name, const glm::mat4& matrix) const {
+	GLint location = glGetUniformLocation(m.shader_program, name.c_str());
+	if (location == -1) {
+		std::cerr << "Warning: Uniform '" << name << "' not found in shader program " << m.shader_program << '\n';
+		return;
+	}
+	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 auto Shader::compileShader(const std::string& source, GLenum shader_type) -> GLint {

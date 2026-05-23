@@ -1,8 +1,10 @@
 #include "SDL3/SDL_events.h"
+#include "camera.hpp"
+#include "cs300/CS300Parser.h"    // Include CS300Parser.h
 #include "cs300/OGLDebug.h"
-#include "mesh.hpp"
 #include "object.hpp"
-#include "shader.hpp"
+
+#include <glm/gtc/matrix_transform.hpp>    // For glm::identity
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "resources.hpp"
@@ -21,15 +23,22 @@ static int win_id;
 static GLsizei width = 1280;
 static GLsizei height = 720;
 
-static std::unique_ptr<Object> object;
-
-// Use the new ResourceManager for all OpenGL resources
+static std::vector<std::unique_ptr<Object>> objects;
+static CS300Parser parser;
+static std::unique_ptr<Camera> camera;
 
 void init() {
-	// Ensure the shader is loaded into the ResourceManager by its name
-	ResourceManager::instance().getShader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
+	ResourceManager::instance().init();
+	parser.LoadDataFromFile("./data/scenes/scene_A0.txt");
 
-	object = std::make_unique<Object>("Suzanne", "./data/meshes/suzanne.obj", "default");
+	if (!parser.objects.empty()) {
+		for (const auto& transform_data : parser.objects) {
+			objects.push_back(std::make_unique<Object>(transform_data, transform_data.mesh));
+		}
+	} else {
+		std::cerr << "Warning: No objects found in parser data. Cannot initialize objects.\n";
+	}
+	camera = std::make_unique<Camera>(parser);
 }
 
 void cleanup() {
@@ -40,10 +49,21 @@ void display(SDL_Window* window) {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	if (object) {
-		object->draw();
-	}
+	if (camera) {
+		glm::mat4 view_matrix = camera->getViewMatrix();
+		glm::mat4 projection_matrix = camera->getProjectionMatrix();
 
+		for (const auto& object_ptr : objects) {
+			object_ptr->shader->bind();
+			object_ptr->shader->setUniformMat4("model", object_ptr->model_matrix);
+			object_ptr->shader->setUniformMat4("view", view_matrix);
+			object_ptr->shader->setUniformMat4("projection", projection_matrix);
+			object_ptr->mesh->draw();
+			object_ptr->shader->unbind();
+		}
+	} else {
+		std::cerr << "Error: Camera not initialized!\n";
+	}
 	SDL_GL_SwapWindow(window);
 }
 
