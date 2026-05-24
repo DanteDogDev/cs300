@@ -1,10 +1,8 @@
 #include "resources.hpp"
 
-#include "glm/common.hpp"
 #include "mesh.hpp"
 #include "texture.hpp"
 
-#include <iostream>    // For logging errors
 #include <utility>
 
 auto ResourceManager::instance() -> ResourceManager& {
@@ -29,7 +27,7 @@ void ResourceManager::init() {
 }
 
 auto ResourceManager::getShader(const std::string& name) -> Shader* {
-	if (shaders.find(name) != shaders.end()) {
+	if (shaders.find(name) == shaders.end()) {
 		return shaders["default"].get();
 	}
 	return shaders[name].get();
@@ -45,7 +43,7 @@ auto ResourceManager::getMesh(const std::string& path) -> Mesh* {
 }
 
 auto ResourceManager::getTexture(const std::string& name) -> Texture* {
-	if (textures.find(name) != textures.end()) {
+	if (textures.find(name) == textures.end()) {
 		return textures["default"].get();
 	}
 	return textures[name].get();
@@ -69,5 +67,5 @@ void ResourceManager::addMesh(const std::string& name, std::vector<Vertex> verti
 }
 
 void ResourceManager::addTexture(const std::string& name, Texture* tex) {
-	textures["name"] = std::unique_ptr<Texture>(tex);
+	textures[name] = std::unique_ptr<Texture>(tex);
 }

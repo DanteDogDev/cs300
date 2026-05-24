@@ -1,12 +1,19 @@
 #include "texture.hpp"
 
 Texture::Texture() {
-	const unsigned char data[] = {0, 0, 255, 0, 255, 255, 0, 255, 0, 255, 255, 0, 255, 0, 0, 255, 0, 255};
+	const unsigned char data[] = {0,   0,   255, 0,   255, 255, 0,   255, 0,   255, 255, 0,   255, 0,   0,   255, 0,   255,
+	                              0,   255, 255, 0,   255, 0,   255, 255, 0,   255, 0,   0,   255, 0,   255, 0,   0,   255,
+	                              0,   255, 0,   255, 255, 0,   255, 0,   0,   255, 0,   255, 0,   0,   255, 0,   255, 255,
+	                              255, 255, 0,   255, 0,   0,   255, 0,   255, 0,   0,   255, 0,   255, 255, 0,   255, 0,
+	                              255, 0,   0,   255, 0,   255, 0,   0,   255, 0,   255, 255, 0,   255, 0,   255, 255, 0,
+	                              255, 0,   255, 0,   0,   255, 0,   255, 255, 0,   255, 0,   255, 255, 0,   255, 0,   0};
 
 	glGenTextures(1, &m.id);
 	glBindTexture(GL_TEXTURE_2D, m.id);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 6, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 6, 6, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

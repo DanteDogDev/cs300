@@ -25,6 +25,7 @@ static int win_id;
 static GLsizei width = 1280;
 static GLsizei height = 720;
 
+static bool render_texture = false;
 static bool render_normals = false;
 static bool render_normals_averaged = false;
 static std::vector<std::unique_ptr<Object>> objects;
@@ -75,7 +76,7 @@ void handleKeyInput(SDL_Scancode scancode) {
 		render_normals = !render_normals;
 	}
 	if (scancode == SDL_SCANCODE_T) {
-		// Toggle texture-mapping on/off
+		render_texture = !render_texture;
 	}
 	if (scancode == SDL_SCANCODE_F) {
 		render_normals_averaged = !render_normals_averaged;
@@ -116,8 +117,11 @@ void display(SDL_Window* window) {
 		object_ptr->shader->setUniformMat4("view", view_matrix);
 		object_ptr->shader->setUniformMat4("projection", projection_matrix);
 
-		// object_ptr->texture->Bind(0);
-		// object_ptr->shader->setUniform1i("tex", 0);
+		object_ptr->shader->setUniform1i("drawTex", render_texture);
+		if (render_texture) {
+			object_ptr->texture->Bind(0);
+			object_ptr->shader->setUniform1i("tex", 0);
+		}
 
 		object_ptr->mesh->draw();
 		if (render_normals) {

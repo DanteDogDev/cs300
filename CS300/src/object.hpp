@@ -5,6 +5,7 @@
 #include "texture.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 #include <string>
 
 class Object {
@@ -21,6 +22,9 @@ public:
 		this->mesh = ResourceManager::instance().getMesh(mesh);
 		this->shader = ResourceManager::instance().getShader("default");
 		this->texture = ResourceManager::instance().getTexture("default");
+		if (!this->mesh || !this->shader || !this->texture) {
+			std::cerr << "Null resource in object: " << this->name << '\n';
+		}
 		model_matrix = glm::identity<glm::mat4>();
 		model_matrix = glm::translate(model_matrix, transform_data.pos);
 		model_matrix = glm::scale(model_matrix, transform_data.sca);
