@@ -2,8 +2,6 @@
  * @file resources.hpp
  * @author Dante Harper
  * @date 23 May 26
- *
- * @brief [TODO: Brief description of the file's purpose]
  */
 
 #pragma once
