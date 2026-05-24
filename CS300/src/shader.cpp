@@ -17,6 +17,15 @@ Shader::~Shader() {
 	glDeleteProgram(m.shader_program);
 }
 
+void Shader::setUniform1i(const std::string& name, int value) const {
+	GLint location = glGetUniformLocation(m.shader_program, name.c_str());
+	if (location == -1) {
+		std::cerr << "Warning: Uniform '" << name << "' not found in shader program " << m.shader_program << '\n';
+		return;
+	}
+	glUniform1i(location, value);
+}
+
 void Shader::setUniformMat4(const std::string& name, const glm::mat4& matrix) const {
 	GLint location = glGetUniformLocation(m.shader_program, name.c_str());
 	if (location == -1) {

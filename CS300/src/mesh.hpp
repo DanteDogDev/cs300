@@ -20,15 +20,31 @@
 
 struct Vertex {
 	glm::vec3 pos;
-	glm::vec3 color;
+	glm::vec3 normal;
+	glm::vec2 uv;
 };
 
 class Mesh {
 	struct {
 		std::vector<Vertex> vertices;
+		std::vector<Vertex> normal_lines;
+		std::vector<Vertex> averaged_normal_lines;
+	} m;
+
+	struct {
 		GLuint vbo = 0;
 		GLuint vao = 0;
-	} m;
+	} mesh;
+
+	struct {
+		GLuint vbo = 0;
+		GLuint vao = 0;
+	} normal;
+
+	struct {
+		GLuint vbo = 0;
+		GLuint vao = 0;
+	} normal_average;
 
 public:
 	~Mesh();
@@ -36,15 +52,20 @@ public:
 	Mesh(const Mesh&) = delete;
 	auto operator=(const Mesh&) -> Mesh& = delete;
 
-	Mesh(Mesh&& other) noexcept;
-
-	static auto createTri() -> std::unique_ptr<Mesh>;
+	void remake(std::vector<Vertex> verts);
 	static auto create(std::vector<Vertex> verts) -> std::unique_ptr<Mesh>;
 
 	void draw() const;
+	void drawNormals() const;
+
+	void drawAveragedNormals() const;
 
 private:
 	Mesh(std::vector<Vertex> verts);
+
+	void generateNormalLines();
+
+	void generateAveragedNormals();
 };
 
 class Model {

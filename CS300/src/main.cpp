@@ -1,10 +1,12 @@
 #include "SDL3/SDL_events.h"
 #include "camera.hpp"
-#include "cs300/CS300Parser.h"    // Include CS300Parser.h
+#include "cs300/CS300Parser.h"
 #include "cs300/OGLDebug.h"
+#include "generate.hpp"
 #include "object.hpp"
 
-#include <glm/gtc/matrix_transform.hpp>    // For glm::identity
+#include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "resources.hpp"
@@ -23,46 +25,110 @@ static int win_id;
 static GLsizei width = 1280;
 static GLsizei height = 720;
 
+static bool render_normals = false;
+static bool render_normals_averaged = false;
 static std::vector<std::unique_ptr<Object>> objects;
 static CS300Parser parser;
 static std::unique_ptr<Camera> camera;
 
+static int slices = 4;
+
 void init() {
 	ResourceManager::instance().init();
+	generated::init(slices, slices / 2);
+
 	parser.LoadDataFromFile("./data/scenes/scene_A0.txt");
 
 	if (!parser.objects.empty()) {
 		for (const auto& transform_data : parser.objects) {
 			objects.push_back(std::make_unique<Object>(transform_data, transform_data.mesh));
 		}
-	} else {
-		std::cerr << "Warning: No objects found in parser data. Cannot initialize objects.\n";
 	}
+
 	camera = std::make_unique<Camera>(parser);
 }
 
-void cleanup() {
-	ResourceManager::instance().clear();
+void handleKeyInput(SDL_Scancode scancode) {
+	const bool* keys = SDL_GetKeyboardState(nullptr);
+
+	if (keys[SDL_SCANCODE_W]) {
+		camera->alpha -= 0.01f;
+	}
+	if (keys[SDL_SCANCODE_S]) {
+		camera->alpha += 0.01f;
+	}
+	if (keys[SDL_SCANCODE_A]) {
+		camera->beta -= 0.01f;
+	}
+	if (keys[SDL_SCANCODE_D]) {
+		camera->beta += 0.01f;
+	}
+	if (keys[SDL_SCANCODE_E]) {
+		camera->radius += 0.1f;
+	}
+	if (keys[SDL_SCANCODE_Q]) {
+		camera->radius -= 0.1f;
+		camera->radius = std::max(camera->radius, 0.1f);
+	}
+
+	if (scancode == SDL_SCANCODE_N) {
+		render_normals = !render_normals;
+	}
+	if (scancode == SDL_SCANCODE_T) {
+		// Toggle texture-mapping on/off
+	}
+	if (scancode == SDL_SCANCODE_F) {
+		render_normals_averaged = !render_normals_averaged;
+	}
+	if (scancode == SDL_SCANCODE_M) {
+		static bool is_wireframe = false;
+		is_wireframe = !is_wireframe;
+
+		if (is_wireframe) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		} else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+	}
+
+	if (scancode == SDL_SCANCODE_KP_PLUS || scancode == SDL_SCANCODE_EQUALS || scancode == SDL_SCANCODE_Z) {
+		slices++;
+		generated::regenerate(slices, slices / 2);
+	}
+	if (scancode == SDL_SCANCODE_KP_MINUS || scancode == SDL_SCANCODE_MINUS || scancode == SDL_SCANCODE_X) {
+		slices--;
+		slices = std::max(4, slices);
+		generated::regenerate(slices, slices / 2);
+	}
 }
 
 void display(SDL_Window* window) {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (camera) {
-		glm::mat4 view_matrix = camera->getViewMatrix();
-		glm::mat4 projection_matrix = camera->getProjectionMatrix();
+	camera->updatePosition();
+	glm::mat4 view_matrix = camera->getViewMatrix();
+	glm::mat4 projection_matrix = camera->getProjectionMatrix();
 
-		for (const auto& object_ptr : objects) {
-			object_ptr->shader->bind();
-			object_ptr->shader->setUniformMat4("model", object_ptr->model_matrix);
-			object_ptr->shader->setUniformMat4("view", view_matrix);
-			object_ptr->shader->setUniformMat4("projection", projection_matrix);
-			object_ptr->mesh->draw();
-			object_ptr->shader->unbind();
+	for (const auto& object_ptr : objects) {
+		object_ptr->shader->bind();
+		object_ptr->shader->setUniformMat4("model", object_ptr->model_matrix);
+		object_ptr->shader->setUniformMat4("view", view_matrix);
+		object_ptr->shader->setUniformMat4("projection", projection_matrix);
+
+		// object_ptr->texture->Bind(0);
+		// object_ptr->shader->setUniform1i("tex", 0);
+
+		object_ptr->mesh->draw();
+		if (render_normals) {
+			if (render_normals_averaged) {
+				object_ptr->mesh->drawAveragedNormals();
+			} else {
+				object_ptr->mesh->drawNormals();
+			}
 		}
-	} else {
-		std::cerr << "Error: Camera not initialized!\n";
+
+		object_ptr->shader->unbind();
 	}
 	SDL_GL_SwapWindow(window);
 }
@@ -100,10 +166,8 @@ auto main(int argc, char* args[]) -> int {
 		exit(1);
 	}
 
-#if _DEBUG
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(MessageCallback, 0);
-#endif
+	// glEnable(GL_DEBUG_OUTPUT);
+	// glDebugMessageCallback(MessageCallback, nullptr);
 
 	// print GPU data
 	std::cout << "GL_VENDOR: " << glGetString(GL_VENDOR) << '\n';
@@ -123,26 +187,34 @@ auto main(int argc, char* args[]) -> int {
 		// std::cout << glGetStringi(GL_EXTENSIONS, i) << '\n';
 	}
 
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
 	init();
 
 	SDL_Event event;
 	bool quit = false;
 	while (!quit) {
+		SDL_Scancode active_scancode = SDL_SCANCODE_UNKNOWN;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_EVENT_QUIT: quit = true; break;
 				case SDL_EVENT_KEY_DOWN:
-					if (event.key.type == SDL_SCANCODE_ESCAPE) {
+					if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
 						quit = true;
 					}
+					active_scancode = event.key.scancode;
 					break;
 			}
 		}
-
+		handleKeyInput(active_scancode);
 		display(window);
 	}
 
-	cleanup();
+	ResourceManager::instance().clear();
 
 	SDL_GL_DestroyContext(context);
 	SDL_DestroyWindow(window);

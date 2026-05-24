@@ -8,7 +8,7 @@
  */
 
 #pragma once
-#include <glm/glm.hpp>    // Include glm for glm::mat4
+#include <glm/glm.hpp>
 #include <memory>
 #include <string>
 
@@ -27,16 +27,13 @@ class Shader {
 public:
 	~Shader();
 
-	/* Binds shader :3*/
 	void bind() const;
 
-	/* Unbinds shader :(*/
 	void unbind() const;
 
-	/* Sets a mat4 uniform */
 	void setUniformMat4(const std::string& name, const glm::mat4& matrix) const;
+	void setUniform1i(const std::string& name, int value) const;
 
-	/* Creates a Default Shader */
 	static auto createDefault() -> std::unique_ptr<Shader>;
 
 	static auto create(std::string_view vertex_path, std::string_view fragment_path) -> std::unique_ptr<Shader>;
@@ -50,9 +47,7 @@ private:
 	Shader(std::string_view vertex_path, std::string_view fragment_path);
 	auto compileShader(const std::string& source, GLenum shader_type) -> GLint;
 
-	/* Compiles the while shader program together*/
 	void compile();
 
-	/* Recompiles the shader program */
 	void recompile();
 };
