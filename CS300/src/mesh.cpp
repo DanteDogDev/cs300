@@ -158,20 +158,26 @@ void Mesh::generateAveragedNormals() {
 	};
 
 	std::map<glm::vec3, glm::vec3, decltype(comp)> position_to_normal_map(comp);
+	std::map<glm::vec3, glm::vec2, decltype(comp)> position_to_uv_map(comp);
+
 	for (const auto& v : m.vertices) {
 		position_to_normal_map[v.pos] += v.normal;
+		position_to_uv_map[v.pos] = v.uv;
 	}
 
 	for (const auto& [pos, accumulated_normal] : position_to_normal_map) {
 		glm::vec3 averaged_normal = glm::normalize(accumulated_normal);
+		glm::vec2 shared_uv = position_to_uv_map[pos];
 
 		Vertex start_vertex {};
 		start_vertex.pos = pos;
 		start_vertex.normal = averaged_normal;
+		start_vertex.uv = shared_uv;
 
 		Vertex end_vertex {};
 		end_vertex.pos = pos + averaged_normal * 0.5f;
 		end_vertex.normal = averaged_normal;
+		end_vertex.uv = shared_uv;
 
 		m.averaged_normal_lines.push_back(start_vertex);
 		m.averaged_normal_lines.push_back(end_vertex);
