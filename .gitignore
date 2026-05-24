@@ -8,11 +8,6 @@ x86/
 # Build artifacts
 *.exe
 *.pdb
-*.ilk
-*.obj
-*.log
-*.tlog
-*.lastbuildstate
 
 CS300/build/
 compile_commands.json
