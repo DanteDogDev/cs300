@@ -87,7 +87,9 @@ void handleKeyInput(SDL_Scancode scancode) {
 
 		if (is_wireframe) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glDisable(GL_CULL_FACE);
 		} else {
+			glEnable(GL_CULL_FACE);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 	}
@@ -199,6 +201,7 @@ auto main(int argc, char* args[]) -> int {
 
 	init();
 
+	printf("Starting Update Loop");
 	SDL_Event event;
 	bool quit = false;
 	while (!quit) {
