@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "mesh.hpp"
+#include "open_gl.hpp"
 
 #include <vector>
 
@@ -21,4 +21,5 @@ auto generateSphere(int slices, int rings) -> std::vector<Vertex>;
 void init(int slices, int rings);
 
 void regenerate(int slices, int rings);
+
 }

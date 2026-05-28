@@ -1,9 +1,14 @@
 #include "generate.hpp"
 
 #include "glm/ext/scalar_constants.hpp"
+#include "open_gl.hpp"
 #include "resources.hpp"
+#include "shader.hpp"
+#include "texture.hpp"
 
 #include <cmath>
+#include <iostream>
+#include <memory>
 
 namespace generated {
 
@@ -201,6 +206,74 @@ auto generateSphere(int slices, int rings) -> std::vector<Vertex> {
 	}
 	return face_verts;
 }
+
+class Manager {
+	std::map<std::string, std::unique_ptr<cs300::Mesh>> meshes;
+	std::map<std::string, std::unique_ptr<gl::Shader>> shaders;
+	std::map<std::string, std::unique_ptr<gl::Texture>> textures;
+
+public:
+	auto getMesh(const std::string& name) -> cs300::Mesh* {
+		auto it = meshes.find(name);
+		if (it == meshes.end()) {
+			addMesh(name);
+			it = meshes.find(name);
+		}
+		return it->second.get();
+	}
+
+	auto getShader(const std::string& name) -> gl::Shader* {
+		auto it = shaders.find(name);
+		if (it == shaders.end()) {
+			std::cerr << "Shader Not Found " << name << "\n";
+			return nullptr;
+		}
+		return it->second.get();
+	}
+
+	auto getTexture(const std::string& name) -> gl::Texture* {
+		auto it = textures.find(name);
+		if (it == textures.end()) {
+			addTexture(name);
+			it = textures.find(name);
+		}
+		return it->second.get();
+	}
+
+	void addMesh(const std::string& path) {
+		cs300::Model model = cs300::Model(path);
+		auto mesh = cs300::Mesh::create(model.getVertices());
+		meshes[path] = std::move(mesh);
+	}
+
+	void addShader(const std::string& name, const std::string& vert, const std::string& frag) {
+		auto* shader = new gl::Shader();
+		shader->make(vert, frag);
+		auto ptr = std::unique_ptr<gl::Shader>(shader);
+		shaders[name] = std::move(ptr);
+	}
+
+	void addTexture(const std::string& path) {
+		auto* texture = new gl::Texture();
+		texture->make(path);
+		auto ptr = std::unique_ptr<gl::Texture>(texture);
+		textures[path] = std::move(ptr);
+	}
+
+	void init(int slices, int rings) {
+		meshes["PLANE"] = cs300::Mesh::create(generatePlane());
+		meshes["CUBE"] = cs300::Mesh::create(generateCube());
+		meshes["CONE"] = cs300::Mesh::create(generateCone(slices));
+		meshes["CYLINDER"] = cs300::Mesh::create(generateCylinder(slices));
+		meshes["SPHERE"] = cs300::Mesh::create(generateSphere(slices, rings));
+	}
+
+	void regenerate(int slices, int rings) {
+		getMesh("CONE")->remake(generateCone(slices));
+		getMesh("CYLINDER")->remake(generateCylinder(slices));
+		getMesh("SPHERE")->remake(generateSphere(slices, rings));
+	}
+};
 
 void init(int slices, int rings) {
 	ResourceManager::instance().addMesh("PLANE", generatePlane());
