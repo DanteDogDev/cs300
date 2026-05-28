@@ -24,15 +24,24 @@ void Mesh::make(const std::vector<Vertex>& verts) {
 		size = verts.size();
 		return;
 	}
+	// Generate Buffers
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
+
+	// Bind Data
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(Vertex), verts.data(), GL_STATIC_DRAW);
+
+	// Position
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
+
+	// Normal
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+
+	// UV
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, uv)));
 	glBindVertexArray(0);
@@ -179,5 +188,74 @@ auto Shader::compileShader(const std::string& source, GLenum shader_type) -> GLi
 	}
 
 	return shader;
+}
+
+// ---------- TEXTURE ---------- //
+Texture::~Texture() {
+	if (texture_id) {
+		glDeleteTextures(1, &texture_id);
+	}
+}
+
+void Texture::make(std::string_view file_path) {
+	if (texture_id) {
+		glDeleteTextures(1, &texture_id);
+		texture_id = 0;
+	}
+
+	int width = 0;
+	int height = 0;
+	int channels = 0;
+
+	unsigned char* data = stbi_load(file_path.data(), &width, &height, &channels, 0);
+
+	if (!data) {
+		std::cerr << "Failed To Load File " << file_path << "\n";
+		return;
+	}
+
+	GLenum internal_format = 0;
+	GLenum data_format = 0;
+	if (channels == 1) {
+		internal_format = GL_RED;
+		data_format = GL_RED;
+	} else if (channels == 3) {
+		internal_format = GL_RGB8;
+		data_format = GL_RGB;
+	} else if (channels == 4) {
+		internal_format = GL_RGBA8;
+		data_format = GL_RGBA;
+	}
+
+	glGenTextures(1, &texture_id);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+
+	// Texture Wrapping
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// Texture Mipmap
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Bind Texture Data
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, data_format, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	// Cleanup
+	glBindTexture(GL_TEXTURE_2D, 0);
+	stbi_image_free(data);
+}
+
+void Texture::bind(unsigned int slot) const {
+	glActiveTexture(GL_TEXTURE0 + slot);
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+}
+
+void Texture::unbind() const {
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 }

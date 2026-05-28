@@ -6,21 +6,17 @@
 
 #pragma once
 
-#include <GL/glew.h>
-
+#include "open_gl.hpp"
 namespace cs300 {
 
 class Texture {
 public:
 	Texture();
-	~Texture();
 
-	void bind(unsigned int unit = 0) const;
+	void bind(unsigned int slot = 0) const;
 
 private:
-	struct {
-		GLuint id = 0;
-	} m;
+	gl::Texture texture;
 };
 
 }

@@ -15,6 +15,7 @@
 
 #include <glm/glm.hpp>
 #include <iostream>
+#include <stb/stb_image.h>
 #include <string>
 #include <vector>
 
@@ -76,58 +77,22 @@ private:
 	auto compileShader(const std::string& source, GLenum shader_type) -> GLint;
 };
 
-// struct Texture {
-// 	Texture() = default;
-// 	~Texture() {
-// 		if (texture_id) {
-// 			glDeleteTextures(1, &texture_id);
-// 		}
-// 	}
-//
-// 	Texture(const Texture&) = delete;
-// 	Texture(Texture&&) = delete;
-// 	auto operator=(const Texture&) -> Texture& = delete;
-// 	auto operator=(Texture&&) -> Texture& = delete;
-//
-// 	GLuint texture_id = 0;
-// 	int width = 0;
-// 	int height = 0;
-// 	int channels = 0;
-//
-//
-// 	void make(const unsigned char* pixels, int w, int h) {
-// 		if (texture_id) {
-// 			glDeleteTextures(1, &texture_id);
-// 			texture_id = 0;
-// 		}
-//
-// 		width = w;
-// 		height = h;
-//
-// 		glGenTextures(1, &texture_id);
-// 		glBindTexture(GL_TEXTURE_2D, texture_id);
-//
-// 		// Default wrapping parameters
-// 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-// 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//
-// 		// Default filtering parameters with Mipmaps
-// 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-// 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//
-// 		// Upload raw RGBA buffer to GPU
-// 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-// 		glGenerateMipmap(GL_TEXTURE_2D);
-//
-// 		glBindTexture(GL_TEXTURE_2D, 0);
-// 	}
-//
-// 	void bind(unsigned int slot) const {
-// 		// GL_TEXTURE0 is guaranteed to be a sequential enum macro
-// 		glActiveTexture(GL_TEXTURE0 + slot);
-// 		glBindTexture(GL_TEXTURE_2D, texture_id);
-// 	}
-//
-// 	void unbind() const { glBindTexture(GL_TEXTURE_2D, 0); }
-// };
+struct Texture {
+	Texture() = default;
+
+	~Texture();
+
+	Texture(const Texture&) = delete;
+	Texture(Texture&&) = delete;
+	auto operator=(const Texture&) -> Texture& = delete;
+	auto operator=(Texture&&) -> Texture& = delete;
+
+	GLuint texture_id = 0;
+
+	void make(std::string_view file_path);
+
+	void bind(unsigned int slot) const;
+
+	void unbind() const;
+};
 }
