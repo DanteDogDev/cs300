@@ -1,5 +1,7 @@
 #include "texture.hpp"
 
+namespace cs300 {
+
 Texture::Texture() {
 	const unsigned char data[] = {0,   0,   255, 0,   255, 255, 0,   255, 0,   255, 255, 0,   255, 0,   0,   255, 0,   255,
 	                              0,   255, 255, 0,   255, 0,   255, 255, 0,   255, 0,   0,   255, 0,   255, 0,   0,   255,
@@ -29,7 +31,8 @@ Texture::~Texture() {
 	}
 }
 
-void Texture::Bind(unsigned int unit) const {
+void Texture::bind(unsigned int unit) const {
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, m.id);
+}
 }

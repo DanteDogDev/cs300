@@ -14,9 +14,9 @@ public:
 
 	glm::mat4 model_matrix;
 
-	Mesh* mesh;
-	Shader* shader;
-	Texture* texture;
+	cs300::Mesh* mesh;
+	cs300::Shader* shader;
+	cs300::Texture* texture;
 
 	Object(const CS300Parser::Transform& transform_data, std::string mesh) : name(transform_data.name) {
 		this->mesh = ResourceManager::instance().getMesh(mesh);

@@ -4,12 +4,11 @@
 #include "cs300/OGLDebug.h"
 #include "generate.hpp"
 #include "object.hpp"
+#include "resources.hpp"
 
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
-
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "resources.hpp"
 #include "tiny_obj_loader.h"
 #undef TINYOBJLOADER_IMPLEMENTATION
 
@@ -121,7 +120,7 @@ void display(SDL_Window* window) {
 
 		object_ptr->shader->setUniform1i("drawTex", render_texture);
 		if (render_texture) {
-			object_ptr->texture->Bind(0);
+			object_ptr->texture->bind(0);
 			object_ptr->shader->setUniform1i("tex", 0);
 		}
 

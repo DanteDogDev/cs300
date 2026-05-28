@@ -23,17 +23,17 @@ void ResourceManager::init() {
 	};
 	addMesh("default", default_verts);
 	addShader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
-	addTexture("default", new Texture());
+	addTexture("default", new cs300::Texture());
 }
 
-auto ResourceManager::getShader(const std::string& name) -> Shader* {
+auto ResourceManager::getShader(const std::string& name) -> cs300::Shader* {
 	if (shaders.find(name) == shaders.end()) {
 		return shaders["default"].get();
 	}
 	return shaders[name].get();
 }
 
-auto ResourceManager::getMesh(const std::string& path) -> Mesh* {
+auto ResourceManager::getMesh(const std::string& path) -> cs300::Mesh* {
 	if (meshes.find(path) == meshes.end()) {
 		try {
 			addMesh(path);
@@ -42,7 +42,7 @@ auto ResourceManager::getMesh(const std::string& path) -> Mesh* {
 	return meshes[path].get();
 }
 
-auto ResourceManager::getTexture(const std::string& name) -> Texture* {
+auto ResourceManager::getTexture(const std::string& name) -> cs300::Texture* {
 	if (textures.find(name) == textures.end()) {
 		return textures["default"].get();
 	}
@@ -50,22 +50,22 @@ auto ResourceManager::getTexture(const std::string& name) -> Texture* {
 }
 
 void ResourceManager::addShader(const std::string& name, const std::string& vert, const std::string& frag) {
-	auto shader = Shader::create(vert, frag);
-	Shader* ptr = shader.get();
+	auto shader = cs300::Shader::create(vert, frag);
+	cs300::Shader* ptr = shader.get();
 	shaders[name] = std::move(shader);
 }
 
 void ResourceManager::addMesh(const std::string& path) {
-	Model model = Model(path);
-	auto mesh = Mesh::create(model.getVertices());
+	cs300::Model model = cs300::Model(path);
+	auto mesh = cs300::Mesh::create(model.getVertices());
 	meshes[path] = std::move(mesh);
 }
 
 void ResourceManager::addMesh(const std::string& name, std::vector<Vertex> vertices) {
-	auto mesh = Mesh::create(std::move(vertices));
+	auto mesh = cs300::Mesh::create(std::move(vertices));
 	meshes[name] = std::move(mesh);
 }
 
-void ResourceManager::addTexture(const std::string& name, Texture* tex) {
-	textures[name] = std::unique_ptr<Texture>(tex);
+void ResourceManager::addTexture(const std::string& name, cs300::Texture* tex) {
+	textures[name] = std::unique_ptr<cs300::Texture>(tex);
 }

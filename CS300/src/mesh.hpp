@@ -7,50 +7,30 @@
 #pragma once
 
 #include "cs300/OGLDebug.h"
+#include "open_gl.hpp"
 #include "tiny_obj_loader.h"
 
-#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
-// clang-format off
-#include <GL/glew.h>
-#include <GL/gl.h>
-// clang-format on
-
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec3 normal;
-	glm::vec2 uv;
-};
+namespace cs300 {
 
 class Mesh {
 	struct {
 		std::vector<Vertex> vertices;
 		std::vector<Vertex> normal_lines;
 		std::vector<Vertex> averaged_normal_lines;
+		gl::Mesh mesh;
+		gl::Mesh normal;
+		gl::Mesh normal_average;
 	} m;
 
-	struct {
-		GLuint vbo = 0;
-		GLuint vao = 0;
-	} mesh;
-
-	struct {
-		GLuint vbo = 0;
-		GLuint vao = 0;
-	} normal;
-
-	struct {
-		GLuint vbo = 0;
-		GLuint vao = 0;
-	} normal_average;
-
 public:
-	~Mesh();
 
 	Mesh(const Mesh&) = delete;
 	auto operator=(const Mesh&) -> Mesh& = delete;
+	Mesh(Mesh&&) = delete;
+	auto operator=(Mesh&&) -> Mesh& = delete;
 
 	void remake(std::vector<Vertex> verts);
 	static auto create(std::vector<Vertex> verts) -> std::unique_ptr<Mesh>;
@@ -83,3 +63,4 @@ public:
 
 private:
 };
+}

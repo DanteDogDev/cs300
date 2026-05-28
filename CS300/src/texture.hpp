@@ -8,12 +8,14 @@
 
 #include <GL/glew.h>
 
+namespace cs300 {
+
 class Texture {
 public:
 	Texture();
 	~Texture();
 
-	void Bind(unsigned int unit = 0) const;
+	void bind(unsigned int unit = 0) const;
 
 private:
 	struct {
@@ -21,3 +23,4 @@ private:
 	} m;
 };
 
+}

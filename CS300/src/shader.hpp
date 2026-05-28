@@ -8,6 +8,8 @@
  */
 
 #pragma once
+#include "open_gl.hpp"
+
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
@@ -17,16 +19,16 @@
 #include <GL/gl.h>
 // clang-format on
 
+namespace cs300 {
+
 class Shader {
 	struct {
 		std::string vertex_path;
 		std::string fragment_path;
-		GLint shader_program;
+		gl::Shader shader;
 	} m;
 
 public:
-	~Shader();
-
 	void bind() const;
 
 	void unbind() const;
@@ -38,10 +40,6 @@ public:
 
 	static auto create(std::string_view vertex_path, std::string_view fragment_path) -> std::unique_ptr<Shader>;
 
-	[[nodiscard]]
-	auto getProgram() const {
-		return m.shader_program;
-	}
 
 private:
 	Shader(std::string_view vertex_path, std::string_view fragment_path);
@@ -51,3 +49,4 @@ private:
 
 	void recompile();
 };
+}
