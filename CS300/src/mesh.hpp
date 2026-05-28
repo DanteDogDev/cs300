@@ -26,13 +26,12 @@ class Mesh {
 	} m;
 
 public:
-
 	Mesh(const Mesh&) = delete;
 	auto operator=(const Mesh&) -> Mesh& = delete;
 	Mesh(Mesh&&) = delete;
 	auto operator=(Mesh&&) -> Mesh& = delete;
 
-	void remake(std::vector<Vertex> verts);
+	void make(std::vector<Vertex> verts);
 	static auto create(std::vector<Vertex> verts) -> std::unique_ptr<Mesh>;
 
 	void draw() const;

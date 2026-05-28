@@ -8,16 +8,10 @@
 namespace cs300 {
 
 Mesh::Mesh(std::vector<Vertex> verts) {
-	m.vertices = std::move(verts);
-	generateNormalLines();
-	generateAveragedNormals();
-
-	m.mesh.make(m.vertices);
-	m.normal.make(m.normal_lines);
-	m.normal_average.make(m.averaged_normal_lines);
+	make(std::move(verts));
 }
 
-void Mesh::remake(std::vector<Vertex> verts) {
+void Mesh::make(std::vector<Vertex> verts) {
 	m.vertices = std::move(verts);
 	generateNormalLines();
 	generateAveragedNormals();

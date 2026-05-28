@@ -250,7 +250,7 @@ void Manager::addTexture(const std::string& path) {
 
 void Manager::init(int slices, int rings) {
 	std::cout << "Generating Meshes\n";
-	shaders["default"] = std::make_unique<gl::Shader>("./data/shaders/default.vert", "./data/shaders/default.frag");
+	addShader("default", "./data/shaders/default.vert", "./data/shaders/default.frag");
 	meshes["PLANE"] = cs300::Mesh::create(generatePlane());
 	meshes["CUBE"] = cs300::Mesh::create(generateCube());
 	meshes["CONE"] = cs300::Mesh::create(generateCone(slices));
@@ -260,9 +260,9 @@ void Manager::init(int slices, int rings) {
 
 void Manager::regenerate(int slices, int rings) {
 	std::cout << "Regenerating Meshes\n";
-	getMesh("CONE")->remake(generateCone(slices));
-	getMesh("CYLINDER")->remake(generateCylinder(slices));
-	getMesh("SPHERE")->remake(generateSphere(slices, rings));
+	getMesh("CONE")->make(generateCone(slices));
+	getMesh("CYLINDER")->make(generateCylinder(slices));
+	getMesh("SPHERE")->make(generateSphere(slices, rings));
 }
 
 void Manager::clear() {
