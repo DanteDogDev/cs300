@@ -29,6 +29,8 @@ namespace gl {
 
 struct Mesh {
 	Mesh() = default;
+	Mesh(const std::vector<Vertex>& verts);
+
 	~Mesh();
 
 	Mesh(const Mesh&) = delete;
@@ -48,6 +50,7 @@ struct Mesh {
 
 struct Shader {
 	Shader() = default;
+	Shader(std::string_view vertex_path, std::string_view fragment_path);
 	~Shader();
 
 	Shader(const Shader&) = delete;
@@ -79,7 +82,7 @@ private:
 
 struct Texture {
 	Texture() = default;
-
+	Texture(std::string_view file_path);
 	~Texture();
 
 	Texture(const Texture&) = delete;

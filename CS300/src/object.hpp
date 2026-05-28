@@ -1,8 +1,6 @@
 #include "cs300/CS300Parser.h"
+#include "generate.hpp"
 #include "mesh.hpp"
-#include "resources.hpp"
-#include "shader.hpp"
-#include "texture.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
@@ -15,13 +13,13 @@ public:
 	glm::mat4 model_matrix;
 
 	cs300::Mesh* mesh;
-	cs300::Shader* shader;
-	cs300::Texture* texture;
+	gl::Shader* shader;
+	gl::Texture* texture;
 
-	Object(const CS300Parser::Transform& transform_data, std::string mesh) : name(transform_data.name) {
-		this->mesh = ResourceManager::instance().getMesh(mesh);
-		this->shader = ResourceManager::instance().getShader("default");
-		this->texture = ResourceManager::instance().getTexture("default");
+	Object(const CS300Parser::Transform& transform_data, const std::string& mesh) : name(transform_data.name) {
+		this->mesh = Manager::getMesh(mesh);
+		this->shader = Manager::getShader("default");
+		this->texture = Manager::getTexture("./data/textures/default.bmp");
 		if (!this->mesh || !this->shader || !this->texture) {
 			std::cerr << "Null resource in object: " << this->name << '\n';
 		}

@@ -6,20 +6,34 @@
 
 #pragma once
 
+#include "mesh.hpp"
 #include "open_gl.hpp"
 
+#include <iostream>
+#include <map>
+#include <memory>
 #include <vector>
 
-namespace generated {
+class Manager {
+	static inline std::map<std::string, std::unique_ptr<cs300::Mesh>> meshes;
+	static inline std::map<std::string, std::unique_ptr<gl::Shader>> shaders;
+	static inline std::map<std::string, std::unique_ptr<gl::Texture>> textures;
 
-auto generatePlane() -> std::vector<Vertex>;
-auto generateCube() -> std::vector<Vertex>;
-auto generateCone(int slices) -> std::vector<Vertex>;
-auto generateCylinder(int slices) -> std::vector<Vertex>;
-auto generateSphere(int slices, int rings) -> std::vector<Vertex>;
+public:
+	static auto getMesh(const std::string& name) -> cs300::Mesh*;
+	static auto getShader(const std::string& name) -> gl::Shader*;
+	static auto getTexture(const std::string& name) -> gl::Texture*;
+	static void addMesh(const std::string& path);
+	static void addShader(const std::string& name, const std::string& vert, const std::string& frag);
+	static void addTexture(const std::string& path);
+	static void init(int slices, int rings);
+	static void regenerate(int slices, int rings);
+	static void clear();
 
-void init(int slices, int rings);
-
-void regenerate(int slices, int rings);
-
-}
+private:
+	static auto generatePlane() -> std::vector<Vertex>;
+	static auto generateCube() -> std::vector<Vertex>;
+	static auto generateCone(int slices) -> std::vector<Vertex>;
+	static auto generateCylinder(int slices) -> std::vector<Vertex>;
+	static auto generateSphere(int slices, int rings) -> std::vector<Vertex>;
+};

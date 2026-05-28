@@ -7,6 +7,10 @@
 
 namespace gl {
 // ---------- MESH ---------- //
+Mesh::Mesh(const std::vector<Vertex>& verts) {
+	make(verts);
+}
+
 Mesh::~Mesh() {
 	if (vao) {
 		glDeleteVertexArrays(1, &vao);
@@ -68,6 +72,10 @@ void Mesh::drawLines() const {
 }
 
 // ---------- SHADER ---------- //
+Shader::Shader(std::string_view vertex_path, std::string_view fragment_path) {
+	make(vertex_path, fragment_path);
+}
+
 Shader::~Shader() {
 	if (shader_program) {
 		glDeleteProgram(shader_program);
@@ -191,6 +199,10 @@ auto Shader::compileShader(const std::string& source, GLenum shader_type) -> GLi
 }
 
 // ---------- TEXTURE ---------- //
+Texture::Texture(std::string_view file_path) {
+	make(file_path);
+}
+
 Texture::~Texture() {
 	if (texture_id) {
 		glDeleteTextures(1, &texture_id);

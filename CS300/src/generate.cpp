@@ -2,17 +2,10 @@
 
 #include "glm/ext/scalar_constants.hpp"
 #include "open_gl.hpp"
-#include "resources.hpp"
-#include "shader.hpp"
-#include "texture.hpp"
 
 #include <cmath>
-#include <iostream>
-#include <memory>
 
-namespace generated {
-
-auto generatePlane() -> std::vector<Vertex> {
+auto Manager::generatePlane() -> std::vector<Vertex> {
 	std::vector<Vertex> verts = {
 	  {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
 	  { {0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
@@ -24,7 +17,7 @@ auto generatePlane() -> std::vector<Vertex> {
 	return verts;
 }
 
-auto generateCube() -> std::vector<Vertex> {
+auto Manager::generateCube() -> std::vector<Vertex> {
 	std::vector<Vertex> face_verts;
 	auto add_face = [&](glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4, glm::vec3 n) {
 		face_verts.push_back({
@@ -56,7 +49,7 @@ auto generateCube() -> std::vector<Vertex> {
 	return face_verts;
 }
 
-auto generateCone(int slices) -> std::vector<Vertex> {
+auto Manager::generateCone(int slices) -> std::vector<Vertex> {
 	std::vector<Vertex> face_verts;
 	float angle_step = 2.0f * glm::pi<float>() / slices;
 
@@ -97,7 +90,7 @@ auto generateCone(int slices) -> std::vector<Vertex> {
 	return face_verts;
 }
 
-auto generateCylinder(int slices) -> std::vector<Vertex> {
+auto Manager::generateCylinder(int slices) -> std::vector<Vertex> {
 	std::vector<Vertex> face_verts;
 	float angle_step = 2.0f * glm::pi<float>() / slices;
 
@@ -165,7 +158,7 @@ auto generateCylinder(int slices) -> std::vector<Vertex> {
 	return face_verts;
 }
 
-auto generateSphere(int slices, int rings) -> std::vector<Vertex> {
+auto Manager::generateSphere(int slices, int rings) -> std::vector<Vertex> {
 	std::vector<Vertex> face_verts;
 	for (int i = 0; i < rings; ++i) {
 		float phi1 = glm::pi<float>() * (float)i / rings;
@@ -207,85 +200,73 @@ auto generateSphere(int slices, int rings) -> std::vector<Vertex> {
 	return face_verts;
 }
 
-class Manager {
-	std::map<std::string, std::unique_ptr<cs300::Mesh>> meshes;
-	std::map<std::string, std::unique_ptr<gl::Shader>> shaders;
-	std::map<std::string, std::unique_ptr<gl::Texture>> textures;
-
-public:
-	auto getMesh(const std::string& name) -> cs300::Mesh* {
-		auto it = meshes.find(name);
-		if (it == meshes.end()) {
-			addMesh(name);
-			it = meshes.find(name);
-		}
-		return it->second.get();
+auto Manager::getMesh(const std::string& name) -> cs300::Mesh* {
+	auto it = meshes.find(name);
+	if (it == meshes.end()) {
+		addMesh(name);
+		it = meshes.find(name);
 	}
-
-	auto getShader(const std::string& name) -> gl::Shader* {
-		auto it = shaders.find(name);
-		if (it == shaders.end()) {
-			std::cerr << "Shader Not Found " << name << "\n";
-			return nullptr;
-		}
-		return it->second.get();
-	}
-
-	auto getTexture(const std::string& name) -> gl::Texture* {
-		auto it = textures.find(name);
-		if (it == textures.end()) {
-			addTexture(name);
-			it = textures.find(name);
-		}
-		return it->second.get();
-	}
-
-	void addMesh(const std::string& path) {
-		cs300::Model model = cs300::Model(path);
-		auto mesh = cs300::Mesh::create(model.getVertices());
-		meshes[path] = std::move(mesh);
-	}
-
-	void addShader(const std::string& name, const std::string& vert, const std::string& frag) {
-		auto* shader = new gl::Shader();
-		shader->make(vert, frag);
-		auto ptr = std::unique_ptr<gl::Shader>(shader);
-		shaders[name] = std::move(ptr);
-	}
-
-	void addTexture(const std::string& path) {
-		auto* texture = new gl::Texture();
-		texture->make(path);
-		auto ptr = std::unique_ptr<gl::Texture>(texture);
-		textures[path] = std::move(ptr);
-	}
-
-	void init(int slices, int rings) {
-		meshes["PLANE"] = cs300::Mesh::create(generatePlane());
-		meshes["CUBE"] = cs300::Mesh::create(generateCube());
-		meshes["CONE"] = cs300::Mesh::create(generateCone(slices));
-		meshes["CYLINDER"] = cs300::Mesh::create(generateCylinder(slices));
-		meshes["SPHERE"] = cs300::Mesh::create(generateSphere(slices, rings));
-	}
-
-	void regenerate(int slices, int rings) {
-		getMesh("CONE")->remake(generateCone(slices));
-		getMesh("CYLINDER")->remake(generateCylinder(slices));
-		getMesh("SPHERE")->remake(generateSphere(slices, rings));
-	}
-};
-
-void init(int slices, int rings) {
-	ResourceManager::instance().addMesh("PLANE", generatePlane());
-	ResourceManager::instance().addMesh("CUBE", generateCube());
-	ResourceManager::instance().addMesh("CONE", generateCone(slices));
-	ResourceManager::instance().addMesh("CYLINDER", generateCylinder(slices));
-	ResourceManager::instance().addMesh("SPHERE", generateSphere(slices, rings));
+	return it->second.get();
 }
 
-void regenerate(int slices, int rings) {
-	ResourceManager::instance().getMesh("CONE")->remake(generateCone(slices));
-	ResourceManager::instance().getMesh("CYLINDER")->remake(generateCylinder(slices));
-	ResourceManager::instance().getMesh("SPHERE")->remake(generateSphere(slices, rings));
+auto Manager::getShader(const std::string& name) -> gl::Shader* {
+	auto it = shaders.find(name);
+	if (it == shaders.end()) {
+		std::cerr << "Shader Not Found " << name << "\n";
+		return nullptr;
+	}
+	return it->second.get();
 }
+
+auto Manager::getTexture(const std::string& name) -> gl::Texture* {
+	auto it = textures.find(name);
+	if (it == textures.end()) {
+		addTexture(name);
+		it = textures.find(name);
+	}
+	return it->second.get();
+}
+
+void Manager::addMesh(const std::string& path) {
+	std::cout << "Adding Mesh: " << path << "\n";
+	cs300::Model model = cs300::Model(path);
+	auto mesh = cs300::Mesh::create(model.getVertices());
+	meshes[path] = std::move(mesh);
+}
+
+void Manager::addShader(const std::string& name, const std::string& vert, const std::string& frag) {
+	std::cout << "Adding Shader: " << name << "\n";
+	auto* shader = new gl::Shader(vert, frag);
+	auto ptr = std::unique_ptr<gl::Shader>(shader);
+	shaders[name] = std::move(ptr);
+}
+
+void Manager::addTexture(const std::string& path) {
+	std::cout << "Adding Texture: " << path << "\n";
+	auto* texture = new gl::Texture(path);
+	auto ptr = std::unique_ptr<gl::Texture>(texture);
+	textures[path] = std::move(ptr);
+}
+
+void Manager::init(int slices, int rings) {
+	std::cout << "Generating Meshes\n";
+	shaders["default"] = std::make_unique<gl::Shader>("./data/shaders/default.vert", "./data/shaders/default.frag");
+	meshes["PLANE"] = cs300::Mesh::create(generatePlane());
+	meshes["CUBE"] = cs300::Mesh::create(generateCube());
+	meshes["CONE"] = cs300::Mesh::create(generateCone(slices));
+	meshes["CYLINDER"] = cs300::Mesh::create(generateCylinder(slices));
+	meshes["SPHERE"] = cs300::Mesh::create(generateSphere(slices, rings));
+}
+
+void Manager::regenerate(int slices, int rings) {
+	std::cout << "Regenerating Meshes\n";
+	getMesh("CONE")->remake(generateCone(slices));
+	getMesh("CYLINDER")->remake(generateCylinder(slices));
+	getMesh("SPHERE")->remake(generateSphere(slices, rings));
+}
+
+void Manager::clear() {
+	meshes.clear();
+	shaders.clear();
+	textures.clear();
 }

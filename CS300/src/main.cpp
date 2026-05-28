@@ -1,21 +1,19 @@
-#include "SDL3/SDL_events.h"
-#include "camera.hpp"
-#include "cs300/CS300Parser.h"
-#include "cs300/OGLDebug.h"
-#include "generate.hpp"
-#include "object.hpp"
-#include "resources.hpp"
-
-#include <algorithm>
-#include <glm/gtc/matrix_transform.hpp>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #undef TINYOBJLOADER_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #undef STB_IMAGE_IMPLEMENTATION
+#include "SDL3/SDL_events.h"
+#include "camera.hpp"
+#include "cs300/CS300Parser.h"
+#include "cs300/OGLDebug.h"
+#include "generate.hpp"
+#include "object.hpp"
 
 #include <SDL3/SDL.h>
+#include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <memory>
 // clang-format off
@@ -30,15 +28,15 @@ static GLsizei height = 720;
 static bool render_texture = false;
 static bool render_normals = false;
 static bool render_normals_averaged = false;
-static std::vector<std::unique_ptr<Object>> objects;
-static CS300Parser parser;
+
 static std::unique_ptr<Camera> camera;
+static std::vector<std::unique_ptr<Object>> objects;
 
 static int slices = 4;
 
 void init() {
-	ResourceManager::instance().init();
-	generated::init(slices, slices / 2);
+	CS300Parser parser;
+	Manager::init(slices, slices / 2);
 
 	parser.LoadDataFromFile("./data/scenes/scene_A0.txt");
 
@@ -98,12 +96,12 @@ void handleKeyInput(SDL_Scancode scancode) {
 
 	if (scancode == SDL_SCANCODE_KP_PLUS || scancode == SDL_SCANCODE_EQUALS || scancode == SDL_SCANCODE_Z) {
 		slices++;
-		generated::regenerate(slices, slices / 2);
+		Manager::regenerate(slices, slices / 2);
 	}
 	if (scancode == SDL_SCANCODE_KP_MINUS || scancode == SDL_SCANCODE_MINUS || scancode == SDL_SCANCODE_X) {
 		slices--;
 		slices = std::max(4, slices);
-		generated::regenerate(slices, slices / 2);
+		Manager::regenerate(slices, slices / 2);
 	}
 }
 
@@ -115,28 +113,32 @@ void display(SDL_Window* window) {
 	glm::mat4 view_matrix = camera->getViewMatrix();
 	glm::mat4 projection_matrix = camera->getProjectionMatrix();
 
-	for (const auto& object_ptr : objects) {
-		object_ptr->shader->bind();
-		object_ptr->shader->setUniformMat4("model", object_ptr->model_matrix);
-		object_ptr->shader->setUniformMat4("view", view_matrix);
-		object_ptr->shader->setUniformMat4("projection", projection_matrix);
+	for (const auto& obj : objects) {
+		auto* shader = obj->shader;
+		auto* texture = obj->texture;
+		auto* mesh = obj->mesh;
 
-		object_ptr->shader->setUniform1i("drawTex", render_texture);
+		shader->bind();
+		shader->setUniform("model", obj->model_matrix);
+		shader->setUniform("view", view_matrix);
+		shader->setUniform("projection", projection_matrix);
+
+		shader->setUniform("drawTex", render_texture);
 		if (render_texture) {
-			object_ptr->texture->bind(0);
-			object_ptr->shader->setUniform1i("tex", 0);
+			texture->bind(0);
+			shader->setUniform("tex", 0);
 		}
 
-		object_ptr->mesh->draw();
+		mesh->draw();
 		if (render_normals) {
 			if (render_normals_averaged) {
-				object_ptr->mesh->drawAveragedNormals();
+				mesh->drawAveragedNormals();
 			} else {
-				object_ptr->mesh->drawNormals();
+				mesh->drawNormals();
 			}
 		}
 
-		object_ptr->shader->unbind();
+		shader->unbind();
 	}
 	SDL_GL_SwapWindow(window);
 }
@@ -223,7 +225,7 @@ auto main(int argc, char* args[]) -> int {
 		display(window);
 	}
 
-	ResourceManager::instance().clear();
+	Manager::clear();
 
 	SDL_GL_DestroyContext(context);
 	SDL_DestroyWindow(window);
