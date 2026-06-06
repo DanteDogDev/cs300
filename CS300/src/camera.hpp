@@ -35,7 +35,7 @@ public:
 		glm::vec3 delta = m.position - m.target;
 		radius = glm::length(delta);
 		alpha = glm::asin(-delta.y / radius);
-		beta = atan2(delta.x, delta.z) + glm::radians(180.0f);
+		beta = atan2(delta.x, delta.z);
 	}
 
 	void updatePosition() {

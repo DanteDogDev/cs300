@@ -38,11 +38,11 @@ void init() {
 	CS300Parser parser;
 	Manager::init(slices, slices / 2);
 
-	parser.LoadDataFromFile("./data/scenes/scene_A0.txt");
+	parser.LoadDataFromFile("./data/scenes/scene_A1.txt");
 
 	if (!parser.objects.empty()) {
 		for (const auto& transform_data : parser.objects) {
-			objects.push_back(std::make_unique<Object>(transform_data, transform_data.mesh));
+				objects.push_back(std::make_unique<Object>(transform_data, transform_data.mesh));
 		}
 	}
 
