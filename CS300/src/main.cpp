@@ -113,20 +113,20 @@ void display(SDL_Window* window) {
 	glm::mat4 view_matrix = camera->getViewMatrix();
 	glm::mat4 projection_matrix = camera->getProjectionMatrix();
 
+	gl::Shader* default_shader = Manager::getShader("default");
+	default_shader->bind();
+	default_shader->setUniform("view", view_matrix);
+	default_shader->setUniform("projection", projection_matrix);
+
 	for (const auto& obj : objects) {
-		auto* shader = obj->shader;
 		auto* texture = obj->texture;
 		auto* mesh = obj->mesh;
+		default_shader->setUniform("model", obj->model_matrix);
 
-		shader->bind();
-		shader->setUniform("model", obj->model_matrix);
-		shader->setUniform("view", view_matrix);
-		shader->setUniform("projection", projection_matrix);
-
-		shader->setUniform("drawTex", render_texture);
+		default_shader->setUniform("drawTex", render_texture);
 		if (render_texture) {
 			texture->bind(0);
-			shader->setUniform("tex", 0);
+			default_shader->setUniform("tex", 0);
 		}
 
 		mesh->draw();
@@ -137,9 +137,8 @@ void display(SDL_Window* window) {
 				mesh->drawNormals();
 			}
 		}
-
-		shader->unbind();
 	}
+	default_shader->unbind();
 	SDL_GL_SwapWindow(window);
 }
 

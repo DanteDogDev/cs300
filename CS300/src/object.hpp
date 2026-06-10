@@ -13,14 +13,12 @@ public:
 	glm::mat4 model_matrix;
 
 	cs300::Mesh* mesh;
-	gl::Shader* shader;
 	gl::Texture* texture;
 
 	Object(const CS300Parser::Transform& transform_data, const std::string& mesh) : name(transform_data.name) {
 		this->mesh = Manager::getMesh(mesh);
-		this->shader = Manager::getShader("default");
 		this->texture = Manager::getTexture("./data/textures/default.bmp");
-		if (!this->mesh || !this->shader || !this->texture) {
+		if (!this->mesh || !this->texture) {
 			std::cerr << "Null resource in object: " << this->name << '\n';
 		}
 		model_matrix = glm::identity<glm::mat4>();
