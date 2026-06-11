@@ -134,7 +134,7 @@ void display(SDL_Window* window) {
 	default_shader->setUniform("projection", projection_matrix);
 
 	for (const auto& obj : objects) {
-		auto* mesh = default_mesh;
+		auto* mesh = obj->mesh;
 		default_shader->setUniform("model", obj->model_matrix);
 
 		default_shader->setUniform("drawTex", render_texture);
@@ -151,6 +151,13 @@ void display(SDL_Window* window) {
 				mesh->drawNormals();
 			}
 		}
+	}
+	for (const auto& obj : lights) {
+		auto* mesh = default_mesh;
+		default_shader->setUniform("model", obj->model_matrix);
+		default_shader->setUniform("drawTex", render_texture);
+
+		mesh->draw();
 	}
 	default_shader->unbind();
 	SDL_GL_SwapWindow(window);
