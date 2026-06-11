@@ -42,7 +42,7 @@ void init() {
 
 	if (!parser.objects.empty()) {
 		for (const auto& transform_data : parser.objects) {
-				objects.push_back(std::make_unique<Object>(transform_data, transform_data.mesh));
+			objects.push_back(std::make_unique<Object>(transform_data, transform_data.mesh));
 		}
 	}
 
@@ -222,6 +222,10 @@ auto main(int argc, char* args[]) -> int {
 		}
 		handleKeyInput(active_scancode);
 		display(window);
+
+		for (const auto& obj : objects) {
+			obj->update();
+		}
 	}
 
 	Manager::clear();
