@@ -6,11 +6,16 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <pthread.h>
 #include <string>
 
 class Object {
 public:
 	std::string name;
+	glm::vec3 origin_position;
+	std::vector<Animations::Anim> anims;
+	glm::mat4 model_matrix;
+	cs300::Mesh* mesh;
 
 	struct {
 		glm::vec3 pos;
@@ -18,33 +23,34 @@ public:
 		glm::vec3 sca;
 	} transform;
 
-	std::vector<Animations::Anim> anims;
-	glm::mat4 model_matrix;
+	struct {
+	} material;
 
-	cs300::Mesh* mesh;
-	gl::Texture* texture;
+
 
 	Object(const CS300Parser::Transform& transform_data, const std::string& mesh) : name(transform_data.name) {
 		this->mesh = Manager::getMesh(mesh);
-		this->texture = Manager::getTexture("./data/textures/default.bmp");
-		if (!this->mesh || !this->texture) {
+		if (!this->mesh) {
 			std::cerr << "Null resource in object: " << this->name << '\n';
 		}
 		transform.pos = transform_data.pos;
 		transform.rot = transform_data.rot;
 		transform.sca = transform_data.sca;
 		anims = transform_data.anims;
+		origin_position = transform.pos;
 		rebuildMatrix();
 	}
 
-	void update() {
-		// float time = static_cast<float>(FRC::GetInstance()->GetTime());
-		float time = 0;
+	void update(float dt) {
+		float time = dt;
 		auto current = transform.pos;
 		for (const auto & anim : anims) {
-				current = anim.Update(current, time);
+				current = anim.Update(origin_position, time);
 		}
-		transform.pos = current;
+		if (not anims.empty()) {
+			transform.pos = current;
+			rebuildMatrix();
+		}
 	}
 
 	void rebuildMatrix() {

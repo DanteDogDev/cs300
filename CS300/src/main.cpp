@@ -31,8 +31,12 @@ static bool render_normals_averaged = false;
 
 static std::unique_ptr<Camera> camera;
 static std::vector<std::unique_ptr<Object>> objects;
+static gl::Texture* default_texture;    // Declaration for default texture
 
 static int slices = 4;
+
+const int target_fps = 60;                                 // Target frames per second
+const float target_frame_time_ms = 1000.f / target_fps;    // Milliseconds per frame
 
 void init() {
 	CS300Parser parser;
@@ -47,6 +51,7 @@ void init() {
 	}
 
 	camera = std::make_unique<Camera>(parser);
+	default_texture = Manager::getTexture("./data/textures/default.bmp");
 }
 
 void handleKeyInput(SDL_Scancode scancode) {
@@ -119,13 +124,12 @@ void display(SDL_Window* window) {
 	default_shader->setUniform("projection", projection_matrix);
 
 	for (const auto& obj : objects) {
-		auto* texture = obj->texture;
 		auto* mesh = obj->mesh;
 		default_shader->setUniform("model", obj->model_matrix);
 
 		default_shader->setUniform("drawTex", render_texture);
 		if (render_texture) {
-			texture->bind(0);
+			default_texture->bind(0);
 			default_shader->setUniform("tex", 0);
 		}
 
@@ -205,9 +209,17 @@ auto main(int argc, char* args[]) -> int {
 	init();
 
 	printf("Starting Update Loop");
+	float current_time_seconds = 0.0f;       // Initialize animation time
+	unsigned int frame_start_time_ms = 0;    // For FPS clamping
+	unsigned int frame_end_time_ms = 0;      // For FPS clamping
+	unsigned int elapsed_time_ms = 0;        // For FPS clamping
+
 	SDL_Event event;
 	bool quit = false;
 	while (!quit) {
+		frame_start_time_ms = SDL_GetTicks();                   // Record frame start time
+		current_time_seconds = frame_start_time_ms / 1000.f;    // Update animation time
+
 		SDL_Scancode active_scancode = SDL_SCANCODE_UNKNOWN;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -224,7 +236,15 @@ auto main(int argc, char* args[]) -> int {
 		display(window);
 
 		for (const auto& obj : objects) {
-			obj->update();
+			obj->update(current_time_seconds);    // Pass animation time to object update
+		}
+
+		// FPS clamping logic
+		frame_end_time_ms = SDL_GetTicks();
+		elapsed_time_ms = frame_end_time_ms - frame_start_time_ms;
+
+		if (elapsed_time_ms < target_frame_time_ms) {
+			SDL_Delay(static_cast<unsigned int>(target_frame_time_ms - elapsed_time_ms));
 		}
 	}
 
