@@ -209,16 +209,16 @@ auto main(int argc, char* args[]) -> int {
 	init();
 
 	printf("Starting Update Loop");
-	float current_time_seconds = 0.0f;       // Initialize animation time
-	unsigned int frame_start_time_ms = 0;    // For FPS clamping
-	unsigned int frame_end_time_ms = 0;      // For FPS clamping
-	unsigned int elapsed_time_ms = 0;        // For FPS clamping
+	float current_time_seconds = 0.0f;
+	unsigned int frame_start_time_ms = 0;
+	unsigned int frame_end_time_ms = 0;
+	unsigned int elapsed_time_ms = 0;
 
 	SDL_Event event;
 	bool quit = false;
 	while (!quit) {
-		frame_start_time_ms = SDL_GetTicks();                   // Record frame start time
-		current_time_seconds = frame_start_time_ms / 1000.f;    // Update animation time
+		frame_start_time_ms = SDL_GetTicks();
+		current_time_seconds = frame_start_time_ms / 1000.f;
 
 		SDL_Scancode active_scancode = SDL_SCANCODE_UNKNOWN;
 		while (SDL_PollEvent(&event)) {
@@ -236,10 +236,9 @@ auto main(int argc, char* args[]) -> int {
 		display(window);
 
 		for (const auto& obj : objects) {
-			obj->update(current_time_seconds);    // Pass animation time to object update
+			obj->update(current_time_seconds);
 		}
 
-		// FPS clamping logic
 		frame_end_time_ms = SDL_GetTicks();
 		elapsed_time_ms = frame_end_time_ms - frame_start_time_ms;
 
