@@ -31,8 +31,11 @@ static bool render_normals_averaged = false;
 
 static std::unique_ptr<Camera> camera;
 static std::vector<std::unique_ptr<Object>> objects;
-static gl::Texture* default_texture;    // Declaration for default texture
+static std::vector<std::unique_ptr<Object>> lights;
 
+static gl::Texture* default_texture;
+static gl::Shader* default_shader;
+static cs300::Mesh* default_mesh;
 static int slices = 4;
 
 const int target_fps = 60;                                 // Target frames per second
@@ -46,12 +49,20 @@ void init() {
 
 	if (!parser.objects.empty()) {
 		for (const auto& transform_data : parser.objects) {
-			objects.push_back(std::make_unique<Object>(transform_data, transform_data.mesh));
+			objects.push_back(std::make_unique<Object>(transform_data));
+		}
+	}
+
+	if (!parser.lights.empty()) {
+		for (const auto& light_data : parser.lights) {
+			lights.push_back(std::make_unique<Object>(light_data));
 		}
 	}
 
 	camera = std::make_unique<Camera>(parser);
 	default_texture = Manager::getTexture("./data/textures/default.bmp");
+	default_shader = Manager::getShader("default");
+	default_mesh = Manager::getMesh("SPHERE");
 }
 
 void handleKeyInput(SDL_Scancode scancode) {
@@ -118,13 +129,12 @@ void display(SDL_Window* window) {
 	glm::mat4 view_matrix = camera->getViewMatrix();
 	glm::mat4 projection_matrix = camera->getProjectionMatrix();
 
-	gl::Shader* default_shader = Manager::getShader("default");
 	default_shader->bind();
 	default_shader->setUniform("view", view_matrix);
 	default_shader->setUniform("projection", projection_matrix);
 
 	for (const auto& obj : objects) {
-		auto* mesh = obj->mesh;
+		auto* mesh = default_mesh;
 		default_shader->setUniform("model", obj->model_matrix);
 
 		default_shader->setUniform("drawTex", render_texture);
@@ -236,6 +246,9 @@ auto main(int argc, char* args[]) -> int {
 		display(window);
 
 		for (const auto& obj : objects) {
+			obj->update(current_time_seconds);
+		}
+		for (const auto& obj : lights) {
 			obj->update(current_time_seconds);
 		}
 

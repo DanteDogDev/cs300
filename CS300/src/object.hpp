@@ -12,10 +12,9 @@
 class Object {
 public:
 	std::string name;
-	glm::vec3 origin_position;
-	std::vector<Animations::Anim> anims;
 	glm::mat4 model_matrix;
 	cs300::Mesh* mesh;
+	bool is_light;
 
 	struct {
 		glm::vec3 pos;
@@ -23,34 +22,50 @@ public:
 		glm::vec3 sca;
 	} transform;
 
-	struct {
-	} material;
+	CS300Parser::Transform object;
+	CS300Parser::Light light;
 
-
-
-	Object(const CS300Parser::Transform& transform_data, const std::string& mesh) : name(transform_data.name) {
-		this->mesh = Manager::getMesh(mesh);
+	Object(const CS300Parser::Transform& transform_data) {
+		is_light = false;
+		this->mesh = Manager::getMesh(transform_data.mesh);
 		if (!this->mesh) {
 			std::cerr << "Null resource in object: " << this->name << '\n';
 		}
+		name = transform_data.name;
 		transform.pos = transform_data.pos;
 		transform.rot = transform_data.rot;
 		transform.sca = transform_data.sca;
-		anims = transform_data.anims;
-		origin_position = transform.pos;
+		object = transform_data;
+		rebuildMatrix();
+	}
+
+	Object(const CS300Parser::Light& light_data) : light(light_data) {
+		is_light = true;
+		name = "Light";
+		transform.pos = light_data.pos;
+		transform.rot = glm::vec3(0.0f);
+		transform.sca = glm::vec3(1.0f);
+		mesh = nullptr;
+		light = light_data;
 		rebuildMatrix();
 	}
 
 	void update(float dt) {
 		float time = dt;
-		auto current = transform.pos;
-		for (const auto & anim : anims) {
-				current = anim.Update(origin_position, time);
-		}
-		if (not anims.empty()) {
+		if (not is_light) {
+			glm::vec3 current = transform.pos;
+			for (const auto& anim : object.anims) {
+				current = anim.Update(object.pos, time);
+			}
 			transform.pos = current;
-			rebuildMatrix();
+		} else {
+			glm::vec3 current = light.pos;
+			for (const auto& anim : light.anims) {
+				current = anim.Update(light.pos, time);
+			}
+			transform.pos = current;
 		}
+		rebuildMatrix();
 	}
 
 	void rebuildMatrix() {
