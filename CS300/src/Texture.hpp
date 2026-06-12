@@ -1,0 +1,23 @@
+#pragma once
+
+#include <GL/glew.h>
+
+class Texture {
+public:
+	Texture();
+	~Texture();
+
+	// RAII handle management
+	Texture(const Texture&) = delete;
+	auto operator=(const Texture&) -> Texture& = delete;
+
+	Texture(Texture&& other) noexcept;
+	auto operator=(Texture&& other) noexcept -> Texture&;
+
+	void bind(unsigned int unit = 0) const;
+
+private:
+	struct {
+		GLuint id = 0;
+	} m;
+};

@@ -30,4 +30,12 @@ glm::vec3 Orbit(const glm::vec3& pos, const glm::vec3& center, float time) {
 	return center + glm::vec3(rotatedRadialVec);
 }
 
+glm::vec3 Apply(const glm::vec3& original, const std::vector<Anim>& anims, float time) {
+	glm::vec3 pos = original;
+	for (const auto& anim : anims) {
+		pos = anim.Update(pos, time);
+	}
+	return pos;
+}
+
 }    // namespace Animations
