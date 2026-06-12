@@ -13,6 +13,7 @@
           gcc
           xmake
 					gdb
+					glslls
           wayland
           wayland-protocols
           wayland-scanner

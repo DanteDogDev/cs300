@@ -43,6 +43,8 @@ void World::init() {
 	default_texture = Manager::getTexture("./data/textures/default.bmp");
 	shader = Manager::getShader("default");
 	default_mesh = Manager::getMesh("SPHERE");
+	printf("Objects %zu\n",objects.size());
+	printf("Lights %zu\n",lights.size());
 }
 
 void World::render(Window& window) {
@@ -57,18 +59,29 @@ void World::render(Window& window) {
 	shader->setUniform("view", view_matrix);
 	shader->setUniform("projection", projection_matrix);
 
+	shader->setUniform("camera", camera->m.position);
+	shader->setUniform("matColor", glm::vec3(1, 1, 1));
 	shader->setUniform("uLightNum", int(lights.size()));
 	for (size_t i = 0; i < lights.size(); i++) {
-		// shader->setUniform("uLight[" + std::to_string(i) + "].type", 0);
-		// shader->setUniform("uLight[" + std::to_string(i) + "].ambient", lights[i]->light.col);
-		// shader->setUniform("uLight[" + std::to_string(i) + "].diffuse", lights[i]->light.col);
-		// shader->setUniform("uLight[" + std::to_string(i) + "].specular", lights[i]->light.col);
-		// shader->setUniform("uLight[" + std::to_string(i) + "].positionWorld", lights[i]->transform.pos);
+		shader->setUniform("uLight[" + std::to_string(i) + "].type", lights[i]->light_type);
+
+		shader->setUniform("uLight[" + std::to_string(i) + "].position", lights[i]->transform.pos);
+		shader->setUniform("uLight[" + std::to_string(i) + "].direction", lights[i]->light.dir);
+
+		shader->setUniform("uLight[" + std::to_string(i) + "].ambient", lights[i]->light.amb);
+		shader->setUniform("uLight[" + std::to_string(i) + "].color", lights[i]->light.col);
+		shader->setUniform("uLight[" + std::to_string(i) + "].specular", glm::vec3(1,1,1));
+
+		shader->setUniform("uLight[" + std::to_string(i) + "].attenuation", lights[i]->light.att);
+		shader->setUniform("uLight[" + std::to_string(i) + "].innerAngle", lights[i]->light.inner);
+		shader->setUniform("uLight[" + std::to_string(i) + "].outerAngle", lights[i]->light.outer);
+		shader->setUniform("uLight[" + std::to_string(i) + "].falloff", lights[i]->light.falloff);
 	}
 
 	for (const auto& obj : objects) {
 		auto* mesh = obj->mesh;
 		shader->setUniform("model", obj->model_matrix);
+		shader->setUniform("shininess", obj->object.ns);
 
 		shader->setUniform("drawTex", render_texture);
 		if (render_texture) {

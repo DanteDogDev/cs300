@@ -24,6 +24,7 @@ public:
 
 	CS300Parser::Transform object;
 	CS300Parser::Light light;
+	int light_type;
 
 	Object(const CS300Parser::Transform& transform_data) {
 		is_light = false;
@@ -47,6 +48,15 @@ public:
 		transform.sca = glm::vec3(1.0f);
 		mesh = nullptr;
 		light = light_data;
+		if (light_data.type == "POINT") {
+			light_type = 0;
+		} else if (light_data.type == "SPOT") {
+			light_type = 1;
+		} else if (light_data.type == "DIR") {
+			light_type = 2;
+		} else {
+			light_type = 3;
+		}
 		rebuildMatrix();
 	}
 

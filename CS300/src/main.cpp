@@ -33,6 +33,7 @@ auto main(int argc, char* args[]) -> int {
 
 		quit = window.processEvents(event, active_scancode);
 		world.handleKeyInput(active_scancode);
+		active_scancode = SDL_SCANCODE_UNKNOWN;
 
 		world.render(window);
 		window.swapBuffers();

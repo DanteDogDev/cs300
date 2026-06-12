@@ -164,7 +164,7 @@ void Shader::setUniform(const std::string& name, const glm::mat4& matrix) const 
 auto Shader::getUniformLoc(const std::string& name) const -> GLint {
 	GLint location = glGetUniformLocation(shader_program, name.c_str());
 	if (location == -1) {
-		std::cerr << "Uniform " << name << " Not found\n";
+		// std::cerr << "Uniform " << name << " Not found\n";
 	}
 	return location;
 }
