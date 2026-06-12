@@ -3,7 +3,15 @@
 #include "glm/ext/scalar_constants.hpp"
 #include "open_gl.hpp"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+#undef TINYOBJLOADER_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#undef STB_IMAGE_IMPLEMENTATION
+
 #include <cmath>
+#include <iostream>
 
 auto Manager::generatePlane() -> std::vector<Vertex> {
 	std::vector<Vertex> verts = {

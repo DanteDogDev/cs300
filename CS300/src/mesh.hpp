@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "cs300/OGLDebug.h"
 #include "open_gl.hpp"
 #include "tiny_obj_loader.h"
 

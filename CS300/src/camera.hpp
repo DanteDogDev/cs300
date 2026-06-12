@@ -3,6 +3,7 @@
 #include "glm/ext/matrix_transform.hpp"
 
 class Camera {
+public:
 	struct {
 		glm::vec3 position;
 		glm::vec3 target;
@@ -16,7 +17,6 @@ class Camera {
 
 	} m;
 
-public:
 	float radius;
 	float alpha;
 	float beta;

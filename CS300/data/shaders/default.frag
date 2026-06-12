@@ -5,6 +5,19 @@ in vec2 uv;
 uniform sampler2D tex;
 uniform bool drawTex;
 
+struct Light {
+	int  type;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	vec3 position;
+};
+
+uniform int   uLightNum;
+uniform Light uLight[8];
+
 out vec4 FragColor;
 
 void main()

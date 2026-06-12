@@ -9,7 +9,6 @@
 #include "mesh.hpp"
 #include "open_gl.hpp"
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <vector>

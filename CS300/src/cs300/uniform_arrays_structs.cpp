@@ -13,7 +13,7 @@
 //     vec3 specular;
 //
 //     vec3 position;
-//     //  other variables 
+//     //  other variables
 //     //  ...
 // };
 //
@@ -42,6 +42,6 @@
 //
 // 	program.SetUniform("uLight[" + std::to_string(i) + "].positionWorld", lights[i]->positionWorld);
 //
-//     //  other variables 
+//     //  other variables
 //     //  ...
 // }
