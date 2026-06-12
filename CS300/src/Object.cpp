@@ -1,4 +1,5 @@
 #include "Object.hpp"
+
 #include "Shader.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -31,7 +32,7 @@ void Object::draw(const Shader& shader, const glm::mat4& view_proj, bool average
 	shader.setUniform("uModel", model);
 	shader.setUniform("uMVP", view_proj * model);
 	shader.setUniform("uNormalMatrix", glm::transpose(glm::inverse(model)));
-	//other
+	// other
 	shader.setUniform("uUseTexture", draw_textures);
 	shader.setUniform("uShininess", m.shininess);
 

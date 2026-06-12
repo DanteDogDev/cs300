@@ -2,9 +2,10 @@
 #include "Light.hpp"
 #include "Mesh.hpp"
 #include "Object.hpp"
-#include "ShaderManager.hpp"
+#include "Shader.hpp"
 #include "Texture.hpp"
 #include "cs300/CS300Parser.h"
+#include "cs300/OGLDebug.h"
 
 #include <GL/glew.h>
 #include <SDL3/SDL.h>
@@ -41,9 +42,9 @@ auto main(int argc, char* args[]) -> int {
 	glDebugMessageCallback(MessageCallback, 0);
 #endif
 
-	ShaderManager shaders;
-	shaders.load("phong", "data/shaders/phong.vert", "data/shaders/phong.frag");
-	shaders.load("normal", "data/shaders/normal.vert", "data/shaders/normal.frag");
+	std::map<std::string, Shader> programs;
+	programs.insert({"phong", Shader("data/shaders/phong.vert", "data/shaders/phong.frag")});
+	programs.insert({"normal", Shader("data/shaders/normal.vert", "data/shaders/normal.frag")});
 
 	Texture texture;
 
@@ -134,22 +135,22 @@ auto main(int argc, char* args[]) -> int {
 		}
 
 		if (keys[SDL_SCANCODE_W]) {
-			STATE.alpha -= 0.05f;
+			STATE.alpha -= 0.5f;
 		}
 		if (keys[SDL_SCANCODE_S]) {
-			STATE.alpha += 0.05f;
+			STATE.alpha += 0.5f;
 		}
 		if (keys[SDL_SCANCODE_A]) {
-			STATE.beta -= 0.05f;
+			STATE.beta -= 0.5f;
 		}
 		if (keys[SDL_SCANCODE_D]) {
-			STATE.beta += 0.05f;
+			STATE.beta += 0.5f;
 		}
 		if (keys[SDL_SCANCODE_Q]) {
-			STATE.r -= 0.01f;
+			STATE.r -= 0.1f;
 		}
 		if (keys[SDL_SCANCODE_E]) {
-			STATE.r += 0.01f;
+			STATE.r += 0.1f;
 		}
 
 		// Camera Constraints
@@ -181,7 +182,7 @@ auto main(int argc, char* args[]) -> int {
 
 		glm::mat4 view_proj = camera.getProj() * camera.getView();
 
-		const Shader& shader = shaders.get("phong");
+		const Shader& shader = programs.at("phong");
 		shader.use();
 		texture.bind(0);
 		shader.setUniform("uDiffuseTex", 0);
@@ -196,7 +197,7 @@ auto main(int argc, char* args[]) -> int {
 		}
 
 		if (STATE.draw_normals) {
-			const Shader& normal_shader = shaders.get("normal");
+			const Shader& normal_shader = programs.at("normal");
 			normal_shader.use();
 			for (const auto& obj : objects) {
 				obj.drawNormals(normal_shader, view_proj, STATE.averaged_normals);

@@ -3,11 +3,11 @@
 
 #include "cs300/tiny_obj_loader.h"
 
+#include <array>    // For std::array
 #include <cmath>
 #include <glm/gtc/constants.hpp>
 #include <iostream>
 #include <map>
-#include <array> // For std::array
 
 Mesh::Mesh(Type type, int slices, int rings) {
 	switch (type) {
@@ -307,10 +307,10 @@ void Mesh::generateSphere(int slices, int rings) {
 			};
 			auto get_uv = [&](float p, float t) { return glm::vec2(t / (2.0f * glm::pi<float>()), 1.0f - (p / glm::pi<float>())); };
 
-			glm::vec3 p1 = get_pos(phi1, theta1);    
-			glm::vec3 p2 = get_pos(phi1, theta2);    
-			glm::vec3 p3 = get_pos(phi2, theta1);    
-			glm::vec3 p4 = get_pos(phi2, theta2);    
+			glm::vec3 p1 = get_pos(phi1, theta1);
+			glm::vec3 p2 = get_pos(phi1, theta2);
+			glm::vec3 p3 = get_pos(phi2, theta1);
+			glm::vec3 p4 = get_pos(phi2, theta2);
 
 			glm::vec2 uv1 = get_uv(phi1, theta1);
 			glm::vec2 uv2 = get_uv(phi1, theta2);
@@ -324,10 +324,10 @@ void Mesh::generateSphere(int slices, int rings) {
 				face_verts.push_back({c, fn, uvc});
 			};
 
-			if (i != rings - 1) {    
+			if (i != rings - 1) {
 				add_tri(p4, p3, p1, uv4, uv3, uv1);
 			}
-			if (i != 0) {            
+			if (i != 0) {
 				add_tri(p4, p1, p2, uv4, uv1, uv2);
 			}
 		}
