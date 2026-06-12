@@ -61,5 +61,5 @@ private:
 
 	void setupGl(const std::vector<Vertex>& face_verts, const std::vector<Vertex>& avg_verts);
 	void setupNormalLines(const std::vector<Vertex>& face_verts, const std::vector<Vertex>& avg_verts);
-	auto computeAveragedNormals(const std::vector<Vertex>& face_verts) -> std::vector<Vertex>;
+	auto computeAveragedNormals(const std::vector<Vertex>& face_verts) const -> std::vector<Vertex>;
 };

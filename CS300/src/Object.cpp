@@ -1,5 +1,4 @@
 #include "Object.hpp"
-
 #include "Shader.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>

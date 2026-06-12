@@ -7,6 +7,7 @@
 #include <glm/gtc/constants.hpp>
 #include <iostream>
 #include <map>
+#include <array> // For std::array
 
 Mesh::Mesh(Type type, int slices, int rings) {
 	switch (type) {
@@ -24,10 +25,10 @@ Mesh::Mesh(const std::string& filename) {
 }
 
 Mesh::~Mesh() {
-	GLuint vaos[] = {m.vao_face, m.vao_avg, m.vao_norm_lines_face, m.vao_norm_lines_avg};
-	GLuint vbos[] = {m.vbo_face, m.vbo_avg, m.vbo_norm_lines_face, m.vbo_norm_lines_avg};
-	glDeleteVertexArrays(4, vaos);
-	glDeleteBuffers(4, vbos);
+	std::array<GLuint, 4> vaos = {m.vao_face, m.vao_avg, m.vao_norm_lines_face, m.vao_norm_lines_avg};
+	std::array<GLuint, 4> vbos = {m.vbo_face, m.vbo_avg, m.vbo_norm_lines_face, m.vbo_norm_lines_avg};
+	glDeleteVertexArrays(4, vaos.data());
+	glDeleteBuffers(4, vbos.data());
 }
 
 Mesh::Mesh(Mesh&& other) noexcept {
@@ -126,7 +127,7 @@ struct IVec3Less {    // TODO: replace this
 	}
 };
 
-auto Mesh::computeAveragedNormals(const std::vector<Vertex>& face_verts) -> std::vector<Vertex> {
+auto Mesh::computeAveragedNormals(const std::vector<Vertex>& face_verts) const -> std::vector<Vertex> {
 	std::map<glm::ivec3, glm::vec3, IVec3Less> key_to_sum;
 	for (const auto& v : face_verts) {
 		key_to_sum[quantizePos(v.pos)] += v.normal;
