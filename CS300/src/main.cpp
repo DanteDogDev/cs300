@@ -53,7 +53,6 @@ auto main(int argc, char* args[]) -> int {
 
 	Camera camera(parser.fovy, 1280.0f / 720.0f, parser.nearPlane, parser.farPlane);
 
-	// Cache meshes so we don't recreate them for every object
 	std::map<std::string, std::shared_ptr<Mesh>> mesh_cache;
 	auto get_mesh = [&](const std::string& name) -> std::shared_ptr<Mesh> {
 		if (mesh_cache.count(name)) {
@@ -153,7 +152,6 @@ auto main(int argc, char* args[]) -> int {
 			STATE.r += 0.1f;
 		}
 
-		// Camera Constraints
 		STATE.alpha = std::max(STATE.alpha, 1.0f);
 		STATE.alpha = std::min(STATE.alpha, 179.0f);
 		STATE.r = std::max(STATE.r, 0.1f);

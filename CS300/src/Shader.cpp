@@ -15,7 +15,6 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
 	glAttachShader(m.id, fragment_shader);
 	glLinkProgram(m.id);
 
-	// linking checks
 	GLint success;
 	glGetProgramiv(m.id, GL_LINK_STATUS, &success);
 	if (!success) {
@@ -26,7 +25,6 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
 		std::cerr << "Shader Link Error (" << vertex_path << " + " << fragment_path << "):\n" << log.data() << '\n';
 	}
 
-	// delete shaders after linkin
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
 }

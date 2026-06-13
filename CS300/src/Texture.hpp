@@ -7,7 +7,6 @@ public:
 	Texture();
 	~Texture();
 
-	// RAII handle management
 	Texture(const Texture&) = delete;
 	auto operator=(const Texture&) -> Texture& = delete;
 

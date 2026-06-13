@@ -8,7 +8,7 @@ namespace {
 auto field(int index, const char* name) -> std::string {
 	return "uLight[" + std::to_string(index) + "]." + name;
 }
-}    // namespace
+}
 
 Light::Light(const CS300Parser::Light& data) {
 	m.color = data.col;
@@ -35,7 +35,6 @@ void Light::update(float time) {
 void Light::setUniforms(const Shader& shader, int index) const {
 	shader.setUniform(field(index, "type"), type());
 
-	// texture color drives ambient and diffuse, specular stays white
 	shader.setUniform(field(index, "ambient"), m.color * m.ambient);
 	shader.setUniform(field(index, "diffuse"), m.color);
 	shader.setUniform(field(index, "specular"), glm::vec3(1.0f));

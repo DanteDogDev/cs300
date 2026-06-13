@@ -27,12 +27,11 @@ void Object::draw(const Shader& shader, const glm::mat4& view_proj, bool average
 		return;
 	}
 
-	// matrixes
 	glm::mat4 model = getModelMatrix();
 	shader.setUniform("uModel", model);
 	shader.setUniform("uMVP", view_proj * model);
 	shader.setUniform("uNormalMatrix", glm::transpose(glm::inverse(model)));
-	// other
+
 	shader.setUniform("uUseTexture", draw_textures);
 	shader.setUniform("uShininess", m.shininess);
 
