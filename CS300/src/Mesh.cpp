@@ -114,18 +114,18 @@ static auto quantizePos(const glm::vec3& p) -> glm::ivec3 {
 	return glm::round(p * grid);
 }
 
-static bool compareIVec3(const glm::ivec3& a, const glm::ivec3& b) {
-	if (a.x != b.x) {
-		return a.x < b.x;
-	}
-	if (a.y != b.y) {
-		return a.y < b.y;
-	}
-	return a.z < b.z;
-}
-
 auto Mesh::computeAveragedNormals(const std::vector<Vertex>& face_verts) const -> std::vector<Vertex> {
-	std::map<glm::ivec3, glm::vec3, decltype(&compareIVec3)> key_to_sum(compareIVec3);
+	auto compare = [](const glm::ivec3& a, const glm::ivec3& b) -> bool {
+		if (a.x != b.x) {
+			return a.x < b.x;
+		}
+		if (a.y != b.y) {
+			return a.y < b.y;
+		}
+		return a.z < b.z;
+	};
+
+	std::map<glm::ivec3, glm::vec3, decltype(compare)> key_to_sum(compare);
 	for (const auto& v : face_verts) {
 		key_to_sum[quantizePos(v.pos)] += v.normal;
 	}
