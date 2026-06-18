@@ -1,10 +1,12 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <string>
 
 class Texture {
 public:
 	Texture();
+	Texture(const std::string& filepath);
 	~Texture();
 
 	Texture(const Texture&) = delete;

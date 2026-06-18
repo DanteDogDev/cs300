@@ -26,4 +26,13 @@ target("cs300", function()
     -- elseif is_plat("linux") then
     --     add_syslinks("GL")
     -- end
+
+    on_load(function (target)
+        for _, pkg in ipairs(target:orderpkgs()) do
+            local linkdirs = pkg:get("linkdirs")
+            if linkdirs then
+                target:add("rpathdirs", linkdirs)
+            end
+        end
+    end)
 end)

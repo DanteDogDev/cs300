@@ -7,12 +7,17 @@ Author: Xein <a.goi@digipen.edu>
 Creation date: 22 May 2026
 ----------------------------------------------------------------------------------------------------------*/
 
-- W/S: Rotate camera vertically (Alpha angle)
-- A/D: Rotate camera horizontally (Beta angle)
-- Q/E: Zoom in/out (Radius)
-- N: Toggle normal rendering (white lines)
-- T: Toggle texture-mapping on/off
-- F: Toggle face/averaged normals (flat vs smooth shading)
-- M: Toggle wireframe mode
-- +/- or Z/X: Increase/reduce number of slices/rings for procedural shapes
-- ESC: Quit
+- W/A/S/D: Orbit around the target point
+- E: Move the camera away from the target
+- Q: Move the camera closer to the target
+-
+- N: Toggle normal rendering
+- T: Toggle rendering modes (normal mapping/normal as color/tangent as color/bitangent as color)
+- F: Toggle face/averaged normal
+- M: Toggle wireframe mode on/off
+-
+- +/Z: Increase the shape subdivisions
+- -/X: Decrease the shape subdivisions
+
+
+In the rendering modes(T) i map the vectors to [0,1] instead of [-1,1] since i believe its more correct than whats shown on the example

@@ -19,31 +19,56 @@ struct Light {
 	float falloff;     
 };
 
+uniform mat4  uView;
+uniform int   uRenderMode;
+
 uniform int   uLightNum;
 uniform Light uLight[LIGHT_NUM_MAX];
 
-uniform float uShininess;
-uniform vec3 uCamPos;
+uniform sampler2D uDiffuseTex;
+uniform sampler2D uNormalTex;
 
-uniform sampler2D uTex;
-uniform bool      uUseTexture;
+uniform float     uShininess;
+uniform bool      uUseDiffuseTex;
+uniform bool      uUseNormalTex;
 
 in vec3 vFragPos;
-in vec3 vNormal;
 in vec2 vTexCoord;
+in mat3 TBN;
 
 out vec4 FragColor;
 
 void main() {
+	if (uRenderMode == 1) {
+		FragColor = vec4(normalize(TBN[2]) * 0.5 + 0.5, 1.0);
+		return;
+	}
+	if (uRenderMode == 2) {
+		FragColor = vec4(normalize(TBN[0]) * 0.5 + 0.5, 1.0);
+		return;
+	}
+	if (uRenderMode == 3) {
+		FragColor = vec4(normalize(TBN[1]) * 0.5 + 0.5, 1.0);
+		return;
+	}
+
 	vec3 baseColor;
-	if (uUseTexture) {
-		baseColor = texture(uTex, vec2(vTexCoord.x, 1.0 - vTexCoord.y)).rgb;
+	if (uUseDiffuseTex) {
+		baseColor = texture(uDiffuseTex, vec2(vTexCoord.x, vTexCoord.y)).rgb;
 	} else {
 		baseColor = vec3(vTexCoord, 0.0);
 	}
 
-	vec3 N = normalize(vNormal);
-	vec3 V = normalize(uCamPos - vFragPos);
+	vec3 N;
+	if (uUseNormalTex) {
+		vec3 normalColor = texture(uNormalTex, vTexCoord).rgb;
+		vec3 tangentNormal = normalColor * 2.0 - 1.0;
+		mat3 reorthogonalizedTBN = mat3(normalize(TBN[0]), normalize(TBN[1]), normalize(TBN[2]));
+		N = normalize(reorthogonalizedTBN * tangentNormal);
+	} else {
+		N = normalize(TBN[2]);
+	}
+	vec3 V = normalize(-vFragPos);
 
 	vec3 result = vec3(0.0);
 	for (int i = 0; i < uLightNum && i < LIGHT_NUM_MAX; ++i) {
@@ -52,42 +77,51 @@ void main() {
 		float attenuation = 1.0;
 		float spotlight = 1.0;
 
+		vec3 lightPos = vec3(uView * vec4(light.position, 1.0));
+		vec3 lightDir = normalize(mat3(uView) * light.direction);
+
 		switch(light.type) {
 			case LIGHT_POINT: {
-				float D = length(light.position - vFragPos);
+				float D = length(lightPos - vFragPos);
 
 				float denom = light.attenuation.x + light.attenuation.y * D + light.attenuation.z * D * D;
 				attenuation = denom > 0.0 ? 1.0 / denom : 1.0;
 				break;
 			}
 			case LIGHT_DIR: {
-				vec3 L = -light.direction;
 				break;
 			}
 			case LIGHT_SPOT: {
-			 vec3 L = light.position - vFragPos;
-			 float D = length(L);
-			 L = normalize(L);
+				vec3 L = lightPos - vFragPos;
+				float D = length(L);
+				L = normalize(L);
 
-			 float denom = light.attenuation.x + light.attenuation.y * D + light.attenuation.z * D * D;
-			 attenuation = denom > 0.0 ? 1.0 / denom : 1.0;
+				float denom = light.attenuation.x + light.attenuation.y * D + light.attenuation.z * D * D;
+				attenuation = denom > 0.0 ? 1.0 / denom : 1.0;
 
-			 float theta = dot(L, normalize(-light.direction));
-			 float cosInner = cos(light.innerAngle);
-			 float cosOuter = cos(light.outerAngle);
-			 spotlight = clamp((theta - cosOuter) / (cosInner - cosOuter), 0.0, 1.0);
-			 spotlight = pow(spotlight, light.falloff);
-			 break;
-		 }
+				float theta = dot(L, normalize(-lightDir));
+				float cosInner = cos(light.innerAngle);
+				float cosOuter = cos(light.outerAngle);
+				spotlight = clamp((theta - cosOuter) / (cosInner - cosOuter), 0.0, 1.0);
+				spotlight = pow(spotlight, light.falloff);
+				break;
+			}
 		}
 
-		vec3 L = light.type == LIGHT_DIR ? -light.direction : normalize(light.position - vFragPos);
-		vec3 R = reflect(-L, N);
+		vec3 L = light.type == LIGHT_DIR ? normalize(-lightDir) : normalize(lightPos - vFragPos);
+		vec3 H = normalize(L + V); 
 
-		vec3 ambient  = light.ambient * baseColor;
-		vec3 diffuse  = light.diffuse * baseColor * max(dot(N, L), 0);
-		vec3 specular = light.specular * pow(max(dot(R, V), 0), uShininess);
-		result += ambient + attenuation * spotlight * (diffuse + specular);
+		vec3 ambient = light.ambient * baseColor;
+		vec3 diffuse = vec3(0.0);
+		vec3 specular = vec3(0.0);
+
+		float dotNL = max(dot(N, L), 0.0);
+		if (dotNL > 0.0) {
+				diffuse = light.diffuse * baseColor * dotNL;
+				specular = light.specular * pow(max(dot(N, H), 0.0), uShininess); 
+		}
+
+		result += ambient + attenuation * (spotlight * (diffuse + specular));
 	}
 
 	FragColor = vec4(result, 1.0);

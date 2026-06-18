@@ -26,6 +26,7 @@ class CS300Parser
         std::string name;
 
         std::string mesh;
+				std::string normal_map;
 
         glm::vec3 pos;
         glm::vec3 rot;

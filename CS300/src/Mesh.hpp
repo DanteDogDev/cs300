@@ -9,6 +9,8 @@ struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 normal;
 	glm::vec2 uv;
+	glm::vec3 tangent = {0, 0, 0};
+	glm::vec3 bitangent = {0, 0, 0};
 };
 
 class Mesh {
@@ -28,38 +30,54 @@ public:
 
 	Mesh(const Mesh&) = delete;
 	auto operator=(const Mesh&) -> Mesh& = delete;
-	Mesh(Mesh&& other) noexcept;
-	auto operator=(Mesh&& other) noexcept -> Mesh&;
+	Mesh(Mesh&& other) noexcept = delete;
 
-	void draw(bool averaged_normals) const;
-	void drawNormals(bool averaged_normals) const;
+	void draw(bool average) const;
+	void drawNormals(bool average) const;
+	void drawTangents(bool average) const;
+	void drawBitangents(bool average) const;
 
 private:
+	struct GlMesh {
+		std::vector<Vertex> vertices;
+		// Main Mesh Data
+		GLuint mesh_vao = 0;
+		GLuint mesh_vbo = 0;
+		int mesh_size = 0;
+
+		// Normal Line Mesh Data
+		GLuint normal_vao = 0;
+		GLuint normal_vbo = 0;
+		int normal_size = 0;
+
+		// tangent Line Mesh Data
+		GLuint tangent_vao = 0;
+		GLuint tangent_vbo = 0;
+		int tangent_size = 0;
+
+		// bitangent Line Mesh Data
+		GLuint bitangent_vao = 0;
+		GLuint bitangent_vbo = 0;
+		int bitangent_size = 0;
+	};
+
 	struct {
-		GLuint vao_face = 0;
-		GLuint vbo_face = 0;
-		GLuint vao_avg = 0;
-		GLuint vbo_avg = 0;
-
-		GLuint vao_norm_lines_face = 0;
-		GLuint vbo_norm_lines_face = 0;
-		GLuint vao_norm_lines_avg = 0;
-		GLuint vbo_norm_lines_avg = 0;
-
-		int vertex_count_face = 0;
-		int vertex_count_avg = 0;
-		int norm_line_count_face = 0;
-		int norm_line_count_avg = 0;
+		GlMesh face;
+		GlMesh averaged;
 	} m;
 
+	auto buildGlMesh() -> void;
+	auto buildGlLines() -> void;
+	auto calculateTangents(std::vector<Vertex>& vertices) -> void;
+	auto averageVertices(const std::vector<Vertex>& vertices) const -> std::vector<Vertex>;
+
+	auto free() -> void;
+
+	// before running these function clean up open gl stuff
+	void loadObj(const std::string& filename);
 	void generatePlane();
 	void generateCube();
 	void generateCone(int slices);
 	void generateCylinder(int slices);
 	void generateSphere(int slices, int rings);
-	void loadObj(const std::string& filename);
-
-	void setupGl(const std::vector<Vertex>& face_verts, const std::vector<Vertex>& avg_verts);
-	void setupNormalLines(const std::vector<Vertex>& face_verts, const std::vector<Vertex>& avg_verts);
-	auto computeAveragedNormals(const std::vector<Vertex>& face_verts) const -> std::vector<Vertex>;
 };

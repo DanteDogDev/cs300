@@ -15,25 +15,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\file.cpp">
+    <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\generate.cpp">
+    <ClCompile Include="src\Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\mesh.cpp">
+    <ClCompile Include="src\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\resources.cpp">
+    <ClCompile Include="src\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\shader.cpp">
+    <ClCompile Include="src\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\texture.cpp">
+    <ClCompile Include="src\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\cs300\animations.cpp">
@@ -47,47 +47,38 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\OGLDebug.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Camera.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\camera.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Light.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\file.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Mesh.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\generate.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Object.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\mesh.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Shader.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\object.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\resources.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\shader.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\texture.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\tiny_obj_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\stb\stb_image.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Texture.hpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cs300\animations.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cs300\CS300Parser.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cs300\OGLDebug.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cs300\stb_image.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cs300\tiny_obj_loader.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

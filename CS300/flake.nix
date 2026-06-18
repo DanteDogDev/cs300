@@ -11,6 +11,7 @@
           clang-tools
           clang
           gcc
+					wineWow64Packages.stable
           xmake
 					gdb
 					glslls

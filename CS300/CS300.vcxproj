@@ -18,6 +18,31 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\cs300\animations.cpp" />
+    <ClCompile Include="src\cs300\CS300Parser.cpp" />
+    <ClCompile Include="src\cs300\OGLDebug.cpp" />
+    <ClCompile Include="src\Light.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Object.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Camera.hpp" />
+    <ClInclude Include="src\cs300\animations.h" />
+    <ClInclude Include="src\cs300\CS300Parser.h" />
+    <ClInclude Include="src\cs300\OGLDebug.h" />
+    <ClInclude Include="src\cs300\stb_image.h" />
+    <ClInclude Include="src\cs300\tiny_obj_loader.h" />
+    <ClInclude Include="src\Light.hpp" />
+    <ClInclude Include="src\Mesh.hpp" />
+    <ClInclude Include="src\Object.hpp" />
+    <ClInclude Include="src\Shader.hpp" />
+    <ClInclude Include="src\Texture.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -71,19 +96,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include;$(SolutionDir)CS300/src</IncludePath>
     <OutDir>$(SolutionDir)bin</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include;$(SolutionDir)CS300/src</IncludePath>
     <OutDir>$(SolutionDir)bin</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include;$(SolutionDir)CS300/src</IncludePath>
     <OutDir>$(SolutionDir)bin</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)include;$(SolutionDir)CS300/src</IncludePath>
     <OutDir>$(SolutionDir)bin</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -148,34 +173,6 @@
       <AdditionalDependencies>glew32.lib;SDL3.lib;OpenGL32.lib;GlU32.lib;glm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src\cs300\animations.cpp" />
-    <ClCompile Include="src\cs300\CS300Parser.cpp" />
-    <ClCompile Include="src\cs300\OGLDebug.cpp" />
-    <ClCompile Include="src\file.cpp" />
-    <ClCompile Include="src\generate.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\mesh.cpp" />
-    <ClCompile Include="src\resources.cpp" />
-    <ClCompile Include="src\shader.cpp" />
-    <ClCompile Include="src\texture.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\camera.hpp" />
-    <ClInclude Include="src\cs300\animations.h" />
-    <ClInclude Include="src\cs300\CS300Parser.h" />
-    <ClInclude Include="src\cs300\OGLDebug.h" />
-    <ClInclude Include="src\file.hpp" />
-    <ClInclude Include="src\generate.hpp" />
-    <ClInclude Include="src\mesh.hpp" />
-    <ClInclude Include="src\object.hpp" />
-    <ClInclude Include="src\OGLDebug.h" />
-    <ClInclude Include="src\resources.hpp" />
-    <ClInclude Include="src\shader.hpp" />
-    <ClInclude Include="src\stb\stb_image.h" />
-    <ClInclude Include="src\texture.hpp" />
-    <ClInclude Include="src\tiny_obj_loader.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
