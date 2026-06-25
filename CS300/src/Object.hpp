@@ -11,6 +11,8 @@
 class Shader;
 
 class Object {
+	friend auto main(int argc, char* args[]) -> int;
+
 public:
 	Object(
 	    std::shared_ptr<Mesh> mesh,                        //

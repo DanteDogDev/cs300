@@ -29,7 +29,6 @@ void Object::draw(const Shader& shader, const glm::mat4& view_proj, bool average
 	}
 	if (m.normal) {
 		m.normal->bind(1);
-		shader.setUniform("uNormalTex", 1);
 		shader.setUniform("uUseNormalTex", true);
 	} else {
 		shader.setUniform("uUseNormalTex", false);
@@ -52,11 +51,11 @@ void Object::drawLines(const Shader& shader, const glm::mat4& view_proj, bool av
 
 	glm::mat4 model = getModelMatrix();
 	shader.setUniform("uMVP", view_proj * model);
-	glUniform4f(1, 0.0f, 0.0f, 1.0f, 1.0f); 
+	glUniform4f(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	m.mesh->drawNormals(averaged_normals);
-	glUniform4f(1, 1.0f, 0.0f, 0.0f, 1.0f); 
+	glUniform4f(1, 1.0f, 0.0f, 0.0f, 1.0f);
 	m.mesh->drawTangents(averaged_normals);
-	glUniform4f(1, 0.0f, 1.0f, 0.0f, 1.0f); 
+	glUniform4f(1, 0.0f, 1.0f, 0.0f, 1.0f);
 	m.mesh->drawBitangents(averaged_normals);
 }
 

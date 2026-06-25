@@ -5,7 +5,9 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "cs300/CS300Parser.h"
+#if _DEBUG
 #include "cs300/OGLDebug.h"
+#endif
 
 #include <GL/glew.h>
 #include <SDL3/SDL.h>
@@ -30,10 +32,10 @@ struct AppState {
 } STATE;
 
 auto main(int argc, char* args[]) -> int {
+	// SETUP SDL
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
 		return 1;
 	}
-
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -49,11 +51,13 @@ auto main(int argc, char* args[]) -> int {
 	std::map<std::string, Shader> programs;
 	programs.insert({"phong", Shader("data/shaders/phong.vert", "data/shaders/phong.frag")});
 	programs.insert({"normal", Shader("data/shaders/normal.vert", "data/shaders/normal.frag")});
+	programs.insert({"depth", Shader("data/shaders/depth.vert", "data/shaders/depth.frag")});
+	programs.insert({"texture", Shader("data/shaders/texture.vert", "data/shaders/texture.frag")});
 
 	Texture texture;
 
 	CS300Parser parser;
-	parser.LoadDataFromFile("data/scenes/scene_A2.txt");
+	parser.LoadDataFromFile("data/scenes/scene_A3.txt");
 
 	Camera camera(parser.fovy, 1280.0f / 720.0f, parser.nearPlane, parser.farPlane);
 
@@ -114,6 +118,21 @@ auto main(int argc, char* args[]) -> int {
 		}
 		lights.push_back(Light::create(l));
 	}
+
+	GLuint depth_fbo;
+	glGenFramebuffers(1, &depth_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+
+	auto light_tex = Texture(512, 512, GL_DEPTH_COMPONENT);
+	light_tex.setDepthBuffer();
+
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		SDL_Log("ERROR::FRAMEBUFFER:: Depth framebuffer is not complete!");
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	SDL_Event event;
 	int numkeys;
@@ -199,27 +218,82 @@ auto main(int argc, char* args[]) -> int {
 
 		glm::mat4 view_proj = camera.getProj() * camera.getView();
 
-		const static Shader& shader = programs.at("phong");
-		shader.use();
+		// PASS ONE TODO:
+
+		glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+		glViewport(0, 0, 512, 512);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		auto& main_light = lights.at(0);
+		auto light_cam = main_light->getCamera();
+
+		auto t = glm::mat4(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
+		auto matrix = light_cam.getProj() * light_cam.getView();
+		auto light_space_matrix = t * light_cam.getProj() * light_cam.getView();
+
+		const static Shader& depth = programs.at("depth");
+		depth.use();
+		for (const auto& obj : objects) {
+			if (obj.m.mesh == get_mesh("PLANE")) {
+				continue;
+			}
+			depth.setUniform("uMVP", matrix * obj.getModelMatrix());
+			obj.m.mesh->draw(false);
+		}
+
+		// PASS TWO TODO:
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, 1280, 720);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		const static Shader& phong = programs.at("phong");
+		phong.use();
+		phong.setUniform("uDiffuseTex", 0);
 		texture.bind(0);
-		shader.setUniform("uDiffuseTex", 0);
-		shader.setUniform("uView", camera.getView());
-		shader.setUniform("uRenderMode", STATE.render_mode);
-		shader.setUniform("uLightNum", static_cast<int>(lights.size()));
+		phong.setUniform("uNormalTex", 1);
+		phong.setUniform("uLightTex", 2);
+		light_tex.bind(2);
+
+		phong.setUniform("uLightSpaceMat", light_space_matrix);
+		phong.setUniform("uView", camera.getView());
+		// phong.setUniform("uRenderMode", STATE.render_mode);
+		phong.setUniform("uLightNum", static_cast<int>(lights.size()));
 		for (size_t i = 0; i < lights.size(); ++i) {
-			lights[i]->setUniforms(shader, static_cast<int>(i));
+			lights[i]->setUniforms(phong, static_cast<int>(i));
 		}
 
 		for (const auto& obj : objects) {
-			obj.draw(shader, view_proj, STATE.average_lines, STATE.draw_textures);
+			obj.draw(phong, view_proj, STATE.average_lines, STATE.draw_textures);
+		}
+
+		const static Shader& normal_shader = programs.at("normal");
+		normal_shader.use();
+
+		glUniform4f(1, 1.0f, 1.0f, 1.0f, 1.0f);
+		for (const auto& obj : lights) {
+			auto sphere = get_mesh("SPHERE");
+			glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), obj->m.curr_pos), glm::vec3(3, 3, 3));
+			normal_shader.setUniform("uMVP", view_proj * model);
+
+			sphere->draw(false);
 		}
 
 		if (STATE.draw_lines) {
-			const static Shader& normal_shader = programs.at("normal");
-			normal_shader.use();
 			for (const auto& obj : objects) {
 				obj.drawLines(normal_shader, view_proj, STATE.average_lines);
 			}
+		}
+		if (STATE.render_mode % 2 == 0) {
+			// render thingy
+			glViewport(-180, -180, 720, 720);
+			glDisable(GL_DEPTH_TEST);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			const static Shader& texture = programs.at("texture");
+			texture.use();
+			texture.setUniform("uTex", 2);
+			get_mesh("PLANE")->draw(false);
+			glEnable(GL_DEPTH_TEST);
 		}
 
 		SDL_GL_SwapWindow(window);

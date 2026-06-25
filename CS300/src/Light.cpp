@@ -34,12 +34,14 @@ void Light::update(float time) {
 
 void Light::setUniforms(const Shader& shader, int index) const {
 	shader.setUniform(field(index, "type"), type());
+	shader.setUniform(field(index, "position"), m.curr_pos);
 
 	shader.setUniform(field(index, "ambient"), m.color * m.ambient);
 	shader.setUniform(field(index, "diffuse"), m.color);
 	shader.setUniform(field(index, "specular"), glm::vec3(1.0f));
 
-	shader.setUniform(field(index, "position"), m.curr_pos);
+	shader.setUniform(field(index, "bias"), m.bias);
+	shader.setUniform(field(index, "pcf"), m.pcf);
 }
 
 PointLight::PointLight(const CS300Parser::Light& data) : Light(data), m_attenuation(data.att) { }

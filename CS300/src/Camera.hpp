@@ -4,8 +4,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 class Camera {
+	friend auto main(int argc, char* args[]) -> int;
+
 public:
+	Camera() = default;
 	Camera(float fov, float aspect, float near, float far);
+	Camera(glm::vec3 pos, float fov, float aspect, float near, float far);
+	Camera(glm::vec3 pos, glm::vec3 view, float fov, float aspect, float near, float far);
 
 	void update(float r, float alpha, float beta, const glm::vec3& target);
 

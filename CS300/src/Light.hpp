@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Camera.hpp"
 #include "cs300/CS300Parser.h"
 
 #include <glm/glm.hpp>
@@ -11,6 +12,8 @@ class Shader;
 constexpr int LIGHT_NUM_MAX = 8;
 
 class Light {
+	friend auto main(int argc, char* args[]) -> int;
+
 public:
 	explicit Light(const CS300Parser::Light& data);
 	virtual ~Light() = default;
@@ -18,12 +21,21 @@ public:
 	static auto create(const CS300Parser::Light& data) -> std::unique_ptr<Light>;
 	virtual auto type() const -> int = 0;
 	virtual void setUniforms(const Shader& shader, int index) const;
+
+	virtual auto getCamera() -> Camera {
+		abort();
+		return {};
+	}
+
 	void update(float time);
 
 protected:
 	struct {
 		glm::vec3 color;
 		float ambient = .2f;
+
+		float bias = 0;
+		int pcf = 0;
 
 		glm::vec3 original_pos;
 		glm::vec3 curr_pos;
@@ -63,6 +75,16 @@ public:
 	auto type() const -> int override { return 2; }
 
 	void setUniforms(const Shader& shader, int index) const override;
+
+	auto getCamera() -> Camera override {
+		glm::vec3 pos = m.curr_pos;
+		float fov = std::acos(m_outer) * 2;
+		float aspect = 1;
+		float near = 1;
+		float far = 500;
+
+		return {pos, m_direction, fov, aspect, near, far};
+	}
 
 private:
 	glm::vec3 m_direction;
