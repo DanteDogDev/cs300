@@ -299,6 +299,8 @@ auto main(int argc, char* args[]) -> int {
 		SDL_GL_SwapWindow(window);
 	}
 
+	glDeleteFramebuffers(1,&depth_fbo);
+
 	SDL_GL_DestroyContext(context);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
