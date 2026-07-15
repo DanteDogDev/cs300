@@ -17,13 +17,13 @@ out vec2 vTexCoord;
 
 out mat3 TBN;
 
-out vec4 vFragPosLightSpace;
+// out vec4 vFragPosLightSpace;
 
 void main() {
 	vTexCoord = aTexCoord;
 	vec4 worldPos = uModel * vec4(aPos, 1.0);
 	vFragPos = (uView * uModel * vec4(aPos, 1.0)).xyz;
-	vFragPosLightSpace = uLightSpaceMat * worldPos;
+	// vFragPosLightSpace = uLightSpaceMat * worldPos;
 
 	vec3 N = normalize(mat3(transpose(inverse(uView * uModel))) * aNormal);
 	vec3 T = normalize(vec3(uView * uModel * vec4(aTangent, 0.0)));

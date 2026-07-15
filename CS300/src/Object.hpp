@@ -16,7 +16,6 @@ class Object {
 public:
 	Object(
 	    std::shared_ptr<Mesh> mesh,                        //
-	    std::shared_ptr<Texture> normal,                   //
 	    const glm::vec3& pos = glm::vec3(0.0f),            //
 	    const glm::vec3& rot = glm::vec3(0.0f),            //
 	    const glm::vec3& sca = glm::vec3(1.0f),            //
@@ -38,7 +37,6 @@ public:
 private:
 	struct {
 		std::shared_ptr<Mesh> mesh;
-		std::shared_ptr<Texture> normal;
 		glm::vec3 original_pos;
 		glm::vec3 curr_pos;
 		glm::vec3 rot;

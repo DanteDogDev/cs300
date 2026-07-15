@@ -6,11 +6,10 @@
 #include <utility>
 
 Object::Object(
-    std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture> normal, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sca,
+    std::shared_ptr<Mesh> mesh, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sca,
     float shininess, const std::vector<Animations::Anim>& anims
 ) {
 	m.mesh = std::move(mesh);
-	m.normal = std::move(normal);
 	m.original_pos = pos;
 	m.curr_pos = pos;
 	m.rot = rot;
@@ -27,19 +26,19 @@ void Object::draw(const Shader& shader, const glm::mat4& view_proj, bool average
 	if (!m.mesh) {
 		return;
 	}
-	if (m.normal) {
-		m.normal->bind(1);
-		shader.setUniform("uUseNormalTex", true);
-	} else {
-		shader.setUniform("uUseNormalTex", false);
-	}
+	// if (m.normal) {
+	// 	m.normal->bind(1);
+	// 	shader.setUniform("uUseNormalTex", true);
+	// } else {
+	// 	shader.setUniform("uUseNormalTex", false);
+	// }
 	glm::mat4 model = getModelMatrix();
 	shader.setUniform("uModel", model);
 	shader.setUniform("uMVP", view_proj * model);
 	shader.setUniform("uNormalMatrix", glm::transpose(glm::inverse(model)));
 
 	shader.setUniform("uUseDiffuseTex", draw_textures);
-	shader.setUniform("uShininess", m.shininess);
+	// shader.setUniform("uShininess", m.shininess);
 
 	m.mesh->draw(averaged_normals);
 }

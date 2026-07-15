@@ -57,7 +57,7 @@ auto main(int argc, char* args[]) -> int {
 	Texture texture;
 
 	CS300Parser parser;
-	parser.LoadDataFromFile("data/scenes/scene_A3.txt");
+	parser.LoadDataFromFile("data/scenes/scene_A4.txt");
 
 	Camera camera(parser.fovy, 1280.0f / 720.0f, parser.nearPlane, parser.farPlane);
 
@@ -103,36 +103,68 @@ auto main(int argc, char* args[]) -> int {
 
 	auto build_objects = [&]() {
 		std::vector<Object> objects;
-		objects.reserve(parser.objects.size());
+		size_t count = parser.objects.size();
+		SDL_Log("CRITICAL: parser.objects.size() returned an invalid value: %zu", count);
+		objects.reserve(count);
 		for (const auto& o : parser.objects) {
-			objects.emplace_back(get_mesh(o.mesh), get_texture(o.normal_map), o.pos, o.rot, o.sca, o.ns, o.anims);
+			objects.emplace_back(get_mesh(o.mesh), o.pos, o.rot, o.sca, o.ns, o.anims);
 		}
 		return objects;
 	};
 	std::vector<Object> objects = build_objects();
 
-	std::vector<std::unique_ptr<Light>> lights;
-	for (const auto& l : parser.lights) {
-		if (static_cast<int>(lights.size()) >= LIGHT_NUM_MAX) {
-			break;
-		}
-		lights.push_back(Light::create(l));
-	}
+	// std::vector<std::unique_ptr<Light>> lights;
+	// for (const auto& l : parser.lights) {
+	// 	if (static_cast<int>(lights.size()) >= LIGHT_NUM_MAX) {
+	// 		break;
+	// 	}
+	// 	lights.push_back(Light::create(l));
+	// }
 
-	GLuint depth_fbo;
-	glGenFramebuffers(1, &depth_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+	// GLuint depth_fbo;
+	// glGenFramebuffers(1, &depth_fbo);
+	// glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+	//
+	// auto light_tex = Texture(512, 512, GL_DEPTH_COMPONENT);
+	// light_tex.setDepthBuffer();
+	//
+	// glDrawBuffer(GL_NONE);
+	// glReadBuffer(GL_NONE);
+	//
+	// if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+	// 	SDL_Log("ERROR::FRAMEBUFFER:: Depth framebuffer is not complete!");
+	// }
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//
 
-	auto light_tex = Texture(512, 512, GL_DEPTH_COMPONENT);
-	light_tex.setDepthBuffer();
-
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		SDL_Log("ERROR::FRAMEBUFFER:: Depth framebuffer is not complete!");
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// GLuint cubemap;
+	// GLuint cubeFBO[6];
+	//
+	// glGenTextures(1, &cubemap);
+	// glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+	//
+	// const unsigned EnvMapSize = 512;
+	// for (GLuint i = 0; i < 6; i++) {
+	// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, EnvMapSize, EnvMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	// }
+	//
+	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//
+	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	//
+	// // Create and set up the FBO
+	// glGenFramebuffers(6, cubeFBO);
+	// for (GLuint i = 0; i < 6; i++) {
+	// 	glBindFramebuffer(GL_FRAMEBUFFER, cubeFBO[i]);
+	// 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap, 0);
+	// 	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
+	// 	glDrawBuffers(1, drawBuffers);
+	// }
+	//
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	SDL_Event event;
 	int numkeys;
@@ -198,9 +230,9 @@ auto main(int argc, char* args[]) -> int {
 		for (auto& obj : objects) {
 			obj.update(time);
 		}
-		for (auto& light : lights) {
-			light->update(time);
-		}
+		// for (auto& light : lights) {
+		// 	light->update(time);
+		// }
 
 		camera.update(STATE.r, STATE.alpha, STATE.beta, parser.camTarget);
 
@@ -220,26 +252,26 @@ auto main(int argc, char* args[]) -> int {
 
 		// PASS ONE TODO:
 
-		glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
-		glViewport(0, 0, 512, 512);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		auto& main_light = lights.at(0);
-		auto light_cam = main_light->getCamera();
-
-		auto t = glm::mat4(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
-		auto matrix = light_cam.getProj() * light_cam.getView();
-		auto light_space_matrix = t * light_cam.getProj() * light_cam.getView();
-
-		const static Shader& depth = programs.at("depth");
-		depth.use();
-		for (const auto& obj : objects) {
-			if (obj.m.mesh == get_mesh("PLANE")) {
-				continue;
-			}
-			depth.setUniform("uMVP", matrix * obj.getModelMatrix());
-			obj.m.mesh->draw(false);
-		}
+		// glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+		// glViewport(0, 0, 512, 512);
+		// glClear(GL_DEPTH_BUFFER_BIT);
+		//
+		// auto& main_light = lights.at(0);
+		// auto light_cam = main_light->getCamera();
+		//
+		// auto t = glm::mat4(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
+		// auto matrix = light_cam.getProj() * light_cam.getView();
+		// auto light_space_matrix = t * light_cam.getProj() * light_cam.getView();
+		//
+		// const static Shader& depth = programs.at("depth");
+		// depth.use();
+		// for (const auto& obj : objects) {
+		// 	if (obj.m.mesh == get_mesh("PLANE")) {
+		// 		continue;
+		// 	}
+		// 	depth.setUniform("uMVP", matrix * obj.getModelMatrix());
+		// 	obj.m.mesh->draw(false);
+		// }
 
 		// PASS TWO TODO:
 
@@ -251,17 +283,17 @@ auto main(int argc, char* args[]) -> int {
 		phong.use();
 		phong.setUniform("uDiffuseTex", 0);
 		texture.bind(0);
-		phong.setUniform("uNormalTex", 1);
-		phong.setUniform("uLightTex", 2);
-		light_tex.bind(2);
+		// phong.setUniform("uNormalTex", 1);
+		// phong.setUniform("uLightTex", 2);
+		// light_tex.bind(2);
 
-		phong.setUniform("uLightSpaceMat", light_space_matrix);
-		phong.setUniform("uView", camera.getView());
+		// phong.setUniform("uLightSpaceMat", light_space_matrix);
+		// phong.setUniform("uView", camera.getView());
 		// phong.setUniform("uRenderMode", STATE.render_mode);
-		phong.setUniform("uLightNum", static_cast<int>(lights.size()));
-		for (size_t i = 0; i < lights.size(); ++i) {
-			lights[i]->setUniforms(phong, static_cast<int>(i));
-		}
+		// phong.setUniform("uLightNum", static_cast<int>(lights.size()));
+		// for (size_t i = 0; i < lights.size(); ++i) {
+		// 	lights[i]->setUniforms(phong, static_cast<int>(i));
+		// }
 
 		for (const auto& obj : objects) {
 			obj.draw(phong, view_proj, STATE.average_lines, STATE.draw_textures);
@@ -270,36 +302,36 @@ auto main(int argc, char* args[]) -> int {
 		const static Shader& normal_shader = programs.at("normal");
 		normal_shader.use();
 
-		glUniform4f(1, 1.0f, 1.0f, 1.0f, 1.0f);
-		for (const auto& obj : lights) {
-			auto sphere = get_mesh("SPHERE");
-			glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), obj->m.curr_pos), glm::vec3(3, 3, 3));
-			normal_shader.setUniform("uMVP", view_proj * model);
-
-			sphere->draw(false);
-		}
+		// glUniform4f(1, 1.0f, 1.0f, 1.0f, 1.0f);
+		// for (const auto& obj : lights) {
+		// 	auto sphere = get_mesh("SPHERE");
+		// 	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), obj->m.curr_pos), glm::vec3(3, 3, 3));
+		// 	normal_shader.setUniform("uMVP", view_proj * model);
+		//
+		// 	sphere->draw(false);
+		// }
 
 		if (STATE.draw_lines) {
 			for (const auto& obj : objects) {
 				obj.drawLines(normal_shader, view_proj, STATE.average_lines);
 			}
 		}
-		if (STATE.render_mode % 2 == 0) {
-			// render thingy
-			glViewport(-180, -180, 720, 720);
-			glDisable(GL_DEPTH_TEST);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			const static Shader& texture = programs.at("texture");
-			texture.use();
-			texture.setUniform("uTex", 2);
-			get_mesh("PLANE")->draw(false);
-			glEnable(GL_DEPTH_TEST);
-		}
+		// if (STATE.render_mode % 2 == 0) {
+		// 	// render thingy
+		// 	glViewport(-180, -180, 720, 720);
+		// 	glDisable(GL_DEPTH_TEST);
+		// 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		// 	const static Shader& texture = programs.at("texture");
+		// 	texture.use();
+		// 	texture.setUniform("uTex", 2);
+		// 	get_mesh("PLANE")->draw(false);
+		// 	glEnable(GL_DEPTH_TEST);
+		// }
 
 		SDL_GL_SwapWindow(window);
 	}
 
-	glDeleteFramebuffers(1,&depth_fbo);
+	// glDeleteFramebuffers(1,&depth_fbo);
 
 	SDL_GL_DestroyContext(context);
 	SDL_DestroyWindow(window);
