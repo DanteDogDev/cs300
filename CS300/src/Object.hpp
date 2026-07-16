@@ -15,12 +15,13 @@ class Object {
 
 public:
 	Object(
-	    std::shared_ptr<Mesh> mesh,                        //
-	    const glm::vec3& pos = glm::vec3(0.0f),            //
-	    const glm::vec3& rot = glm::vec3(0.0f),            //
-	    const glm::vec3& sca = glm::vec3(1.0f),            //
-	    float shininess = 0.0f,                            //
-	    const std::vector<Animations::Anim>& anims = {}    //
+	    std::shared_ptr<Mesh> mesh,                         //
+	    const glm::vec3& pos = glm::vec3(0.0f),             //
+	    const glm::vec3& rot = glm::vec3(0.0f),             //
+	    const glm::vec3& sca = glm::vec3(1.0f),             //
+	    float shininess = 0.0f,                             //
+	    const std::vector<Animations::Anim>& anims = {},    //
+	    bool reflector = false                              //
 	);
 
 	void draw(const Shader& shader, const glm::mat4& view_proj, bool averaged_normals, bool draw_textures) const;
@@ -43,5 +44,6 @@ private:
 		glm::vec3 sca;
 		float shininess = 0;
 		std::vector<Animations::Anim> anims;
+		bool reflector = false;
 	} m;
 };

@@ -6,8 +6,6 @@ uniform int   uRenderMode;
 
 uniform sampler2D uDiffuseTex;
 
-uniform bool      uUseDiffuseTex;
-
 in vec3 vFragPos;
 in vec2 vTexCoord;
 in mat3 TBN;
@@ -29,11 +27,7 @@ void main() {
 	}
 
 	vec3 baseColor;
-	if (uUseDiffuseTex) {
-		baseColor = texture(uDiffuseTex, vec2(vTexCoord.x, vTexCoord.y)).rgb;
-	} else {
-		baseColor = vec3(vTexCoord, 0.0);
-	}
+	baseColor = texture(uDiffuseTex, vec2(vTexCoord.x, vTexCoord.y)).rgb;
 
 
 	FragColor = vec4(baseColor, 1.0);

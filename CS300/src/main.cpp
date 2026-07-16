@@ -5,6 +5,8 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "cs300/CS300Parser.h"
+
+#include <cs300/stb_image.h>
 #if _DEBUG
 #include "cs300/OGLDebug.h"
 #endif
@@ -53,6 +55,7 @@ auto main(int argc, char* args[]) -> int {
 	programs.insert({"normal", Shader("data/shaders/normal.vert", "data/shaders/normal.frag")});
 	programs.insert({"depth", Shader("data/shaders/depth.vert", "data/shaders/depth.frag")});
 	programs.insert({"texture", Shader("data/shaders/texture.vert", "data/shaders/texture.frag")});
+	programs.insert({"skybox", Shader("data/shaders/skybox.vert", "data/shaders/skybox.frag")});
 
 	Texture texture;
 
@@ -104,7 +107,6 @@ auto main(int argc, char* args[]) -> int {
 	auto build_objects = [&]() {
 		std::vector<Object> objects;
 		size_t count = parser.objects.size();
-		SDL_Log("CRITICAL: parser.objects.size() returned an invalid value: %zu", count);
 		objects.reserve(count);
 		for (const auto& o : parser.objects) {
 			objects.emplace_back(get_mesh(o.mesh), o.pos, o.rot, o.sca, o.ns, o.anims);
@@ -113,58 +115,35 @@ auto main(int argc, char* args[]) -> int {
 	};
 	std::vector<Object> objects = build_objects();
 
-	// std::vector<std::unique_ptr<Light>> lights;
-	// for (const auto& l : parser.lights) {
-	// 	if (static_cast<int>(lights.size()) >= LIGHT_NUM_MAX) {
-	// 		break;
-	// 	}
-	// 	lights.push_back(Light::create(l));
-	// }
+	// Setup Envirorment Cubemap
+	GLuint cubemap;
+	GLuint cube_fbo[6];
+	glGenTextures(1, &cubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+	const unsigned env_map_size = 512;
+	for (GLuint i = 0; i < 6; i++) {
+		int width, height, nr_channels;
+		unsigned char* data = stbi_load(parser.environmentMap[i].data(), &width, &height, &nr_channels, 0);
+		GLenum format = (nr_channels == 4) ? GL_RGBA : GL_RGB;
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	// GLuint depth_fbo;
-	// glGenFramebuffers(1, &depth_fbo);
-	// glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
-	//
-	// auto light_tex = Texture(512, 512, GL_DEPTH_COMPONENT);
-	// light_tex.setDepthBuffer();
-	//
-	// glDrawBuffer(GL_NONE);
-	// glReadBuffer(GL_NONE);
-	//
-	// if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-	// 	SDL_Log("ERROR::FRAMEBUFFER:: Depth framebuffer is not complete!");
-	// }
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glGenFramebuffers(6, cube_fbo);
+	for (GLuint i = 0; i < 6; i++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, cube_fbo[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap, 0);
+		GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, draw_buffers);
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// GLuint cubemap;
-	// GLuint cubeFBO[6];
-	//
-	// glGenTextures(1, &cubemap);
-	// glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-	//
-	// const unsigned EnvMapSize = 512;
-	// for (GLuint i = 0; i < 6; i++) {
-	// 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, EnvMapSize, EnvMapSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	// }
-	//
-	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//
-	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	// glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	//
-	// // Create and set up the FBO
-	// glGenFramebuffers(6, cubeFBO);
-	// for (GLuint i = 0; i < 6; i++) {
-	// 	glBindFramebuffer(GL_FRAMEBUFFER, cubeFBO[i]);
-	// 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap, 0);
-	// 	GLenum drawBuffers[] = {GL_COLOR_ATTACHMENT0};
-	// 	glDrawBuffers(1, drawBuffers);
-	// }
-	//
-	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	for (std::string_view i : parser.environmentMap) { }
 
 	SDL_Event event;
 	int numkeys;
@@ -230,15 +209,15 @@ auto main(int argc, char* args[]) -> int {
 		for (auto& obj : objects) {
 			obj.update(time);
 		}
-		// for (auto& light : lights) {
-		// 	light->update(time);
-		// }
 
 		camera.update(STATE.r, STATE.alpha, STATE.beta, parser.camTarget);
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.1f, 1.f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 
@@ -250,50 +229,10 @@ auto main(int argc, char* args[]) -> int {
 
 		glm::mat4 view_proj = camera.getProj() * camera.getView();
 
-		// PASS ONE TODO:
-
-		// glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
-		// glViewport(0, 0, 512, 512);
-		// glClear(GL_DEPTH_BUFFER_BIT);
-		//
-		// auto& main_light = lights.at(0);
-		// auto light_cam = main_light->getCamera();
-		//
-		// auto t = glm::mat4(0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f);
-		// auto matrix = light_cam.getProj() * light_cam.getView();
-		// auto light_space_matrix = t * light_cam.getProj() * light_cam.getView();
-		//
-		// const static Shader& depth = programs.at("depth");
-		// depth.use();
-		// for (const auto& obj : objects) {
-		// 	if (obj.m.mesh == get_mesh("PLANE")) {
-		// 		continue;
-		// 	}
-		// 	depth.setUniform("uMVP", matrix * obj.getModelMatrix());
-		// 	obj.m.mesh->draw(false);
-		// }
-
-		// PASS TWO TODO:
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, 1280, 720);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		const static Shader& phong = programs.at("phong");
 		phong.use();
 		phong.setUniform("uDiffuseTex", 0);
 		texture.bind(0);
-		// phong.setUniform("uNormalTex", 1);
-		// phong.setUniform("uLightTex", 2);
-		// light_tex.bind(2);
-
-		// phong.setUniform("uLightSpaceMat", light_space_matrix);
-		// phong.setUniform("uView", camera.getView());
-		// phong.setUniform("uRenderMode", STATE.render_mode);
-		// phong.setUniform("uLightNum", static_cast<int>(lights.size()));
-		// for (size_t i = 0; i < lights.size(); ++i) {
-		// 	lights[i]->setUniforms(phong, static_cast<int>(i));
-		// }
 
 		for (const auto& obj : objects) {
 			obj.draw(phong, view_proj, STATE.average_lines, STATE.draw_textures);
@@ -302,36 +241,35 @@ auto main(int argc, char* args[]) -> int {
 		const static Shader& normal_shader = programs.at("normal");
 		normal_shader.use();
 
-		// glUniform4f(1, 1.0f, 1.0f, 1.0f, 1.0f);
-		// for (const auto& obj : lights) {
-		// 	auto sphere = get_mesh("SPHERE");
-		// 	glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), obj->m.curr_pos), glm::vec3(3, 3, 3));
-		// 	normal_shader.setUniform("uMVP", view_proj * model);
-		//
-		// 	sphere->draw(false);
-		// }
-
 		if (STATE.draw_lines) {
 			for (const auto& obj : objects) {
 				obj.drawLines(normal_shader, view_proj, STATE.average_lines);
 			}
 		}
-		// if (STATE.render_mode % 2 == 0) {
-		// 	// render thingy
-		// 	glViewport(-180, -180, 720, 720);
-		// 	glDisable(GL_DEPTH_TEST);
-		// 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		// 	const static Shader& texture = programs.at("texture");
-		// 	texture.use();
-		// 	texture.setUniform("uTex", 2);
-		// 	get_mesh("PLANE")->draw(false);
-		// 	glEnable(GL_DEPTH_TEST);
-		// }
+
+		// skybox
+		{
+			glDepthFunc(GL_LEQUAL);
+			const static Shader& skybox = programs.at("skybox");
+			skybox.use();
+
+			skybox.setUniform("projection", camera.getProj());
+			skybox.setUniform("view", camera.getView());
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+			skybox.setUniform("skybox", 0);
+
+			glDisable(GL_CULL_FACE);
+			const static auto& mesh = get_mesh("CUBE");
+			mesh->draw(false);
+			glEnable(GL_CULL_FACE);
+
+			glDepthFunc(GL_LESS);
+		}
 
 		SDL_GL_SwapWindow(window);
 	}
-
-	// glDeleteFramebuffers(1,&depth_fbo);
 
 	SDL_GL_DestroyContext(context);
 	SDL_DestroyWindow(window);

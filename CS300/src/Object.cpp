@@ -6,8 +6,8 @@
 #include <utility>
 
 Object::Object(
-    std::shared_ptr<Mesh> mesh, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sca,
-    float shininess, const std::vector<Animations::Anim>& anims
+    std::shared_ptr<Mesh> mesh, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sca, float shininess,
+    const std::vector<Animations::Anim>& anims, bool reflector
 ) {
 	m.mesh = std::move(mesh);
 	m.original_pos = pos;
@@ -16,6 +16,7 @@ Object::Object(
 	m.sca = sca;
 	m.shininess = shininess;
 	m.anims = anims;
+	m.reflector = reflector;
 }
 
 void Object::update(float time) {
