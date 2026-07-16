@@ -20,9 +20,9 @@
 #include <vector>
 
 struct AppState {
-	float r = 110.0f;
+	float r = 50.0f;
 	float alpha = 90.0f;
-	float beta = 0.0f;
+	float beta = 180.0f;
 	bool draw_lines = false;
 	bool draw_textures = true;
 	bool average_lines = true;
@@ -109,18 +109,15 @@ auto main(int argc, char* args[]) -> int {
 		size_t count = parser.objects.size();
 		objects.reserve(count);
 		for (const auto& o : parser.objects) {
-			objects.emplace_back(get_mesh(o.mesh), o.pos, o.rot, o.sca, o.ns, o.anims);
+			objects.emplace_back(get_mesh(o.mesh), o.pos, o.rot, o.sca, o.ns, o.anims, o.reflector, o.ior);
 		}
 		return objects;
 	};
 	std::vector<Object> objects = build_objects();
 
-	// Setup Envirorment Cubemap
-	GLuint cubemap;
-	GLuint cube_fbo[6];
-	glGenTextures(1, &cubemap);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-	const unsigned env_map_size = 512;
+	GLuint skybox_cubemap;
+	glGenTextures(1, &skybox_cubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_cubemap);
 	for (GLuint i = 0; i < 6; i++) {
 		int width, height, nr_channels;
 		unsigned char* data = stbi_load(parser.environmentMap[i].data(), &width, &height, &nr_channels, 0);
@@ -130,14 +127,35 @@ auto main(int argc, char* args[]) -> int {
 	}
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	GLuint cubemap;
+	GLuint cube_fbo[6];
+	glGenTextures(1, &cubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+	const unsigned env_map_size = 512;
+	for (GLuint i = 0; i < 6; i++) {
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, env_map_size, env_map_size, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	GLuint depth_rbo;
+	glGenRenderbuffers(1, &depth_rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, depth_rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, env_map_size, env_map_size);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
 	glGenFramebuffers(6, cube_fbo);
 	for (GLuint i = 0; i < 6; i++) {
 		glBindFramebuffer(GL_FRAMEBUFFER, cube_fbo[i]);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_rbo);
 		GLenum draw_buffers[] = {GL_COLOR_ATTACHMENT0};
 		glDrawBuffers(1, draw_buffers);
 	}
@@ -158,7 +176,7 @@ auto main(int argc, char* args[]) -> int {
 				switch (event.key.scancode) {
 					case SDL_SCANCODE_ESCAPE: STATE.quit = true; break;
 					case SDL_SCANCODE_N: STATE.draw_lines = !STATE.draw_lines; break;
-					case SDL_SCANCODE_T: STATE.render_mode = (STATE.render_mode + 1) % 4; break;
+					case SDL_SCANCODE_T: STATE.render_mode = (STATE.render_mode + 1) % 3; break;
 					case SDL_SCANCODE_F: STATE.average_lines = !STATE.average_lines; break;
 					case SDL_SCANCODE_M: STATE.wireframe = !STATE.wireframe; break;
 					case SDL_SCANCODE_EQUALS:
@@ -212,8 +230,94 @@ auto main(int argc, char* args[]) -> int {
 
 		camera.update(STATE.r, STATE.alpha, STATE.beta, parser.camTarget);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClearColor(0.1f, 1.f, 0.1f, 1.0f);
+		const Object* reflector_obj = nullptr;
+		for (const auto& obj : objects) {
+			if (obj.m.reflector) {
+				reflector_obj = &obj;
+				break;
+			}
+		}
+
+		if (reflector_obj) {
+			GLint original_viewport[4];
+			glGetIntegerv(GL_VIEWPORT, original_viewport);
+
+			glViewport(0, 0, env_map_size, env_map_size);
+
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+
+			glm::mat4 cube_proj = glm::perspective(glm::radians(90.0f), 1.0f, parser.nearPlane, parser.farPlane);
+
+			glm::vec3 reflector_pos = reflector_obj->m.curr_pos;
+
+			glm::vec3 targets[6] = {
+				reflector_pos + glm::vec3(1.0f, 0.0f, 0.0f),
+				reflector_pos + glm::vec3(-1.0f, 0.0f, 0.0f),
+				reflector_pos + glm::vec3(0.0f, 1.0f, 0.0f),
+				reflector_pos + glm::vec3(0.0f, -1.0f, 0.0f),
+				reflector_pos + glm::vec3(0.0f, 0.0f, 1.0f),
+				reflector_pos + glm::vec3(0.0f, 0.0f, -1.0f)
+			};
+			glm::vec3 ups[6] = {
+				glm::vec3(0.0f, -1.0f, 0.0f),
+				glm::vec3(0.0f, -1.0f, 0.0f),
+				glm::vec3(0.0f, 0.0f, 1.0f),
+				glm::vec3(0.0f, 0.0f, -1.0f),
+				glm::vec3(0.0f, -1.0f, 0.0f),
+				glm::vec3(0.0f, -1.0f, 0.0f)
+			};
+
+			for (int i = 0; i < 6; i++) {
+				glBindFramebuffer(GL_FRAMEBUFFER, cube_fbo[i]);
+				glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				glm::mat4 cube_view = glm::lookAt(reflector_pos, targets[i], ups[i]);
+				glm::mat4 cube_view_proj = cube_proj * cube_view;
+
+				{
+					glDepthFunc(GL_LEQUAL);
+					const static Shader& skybox = programs.at("skybox");
+					skybox.use();
+					skybox.setUniform("projection", cube_proj);
+					skybox.setUniform("view", cube_view);
+
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_cubemap);
+					skybox.setUniform("skybox", 0);
+
+					glDisable(GL_CULL_FACE);
+					const static auto& cube_mesh = get_mesh("CUBE");
+					cube_mesh->draw(false);
+					glEnable(GL_CULL_FACE);
+
+					glDepthFunc(GL_LESS);
+				}
+
+				const static Shader& phong = programs.at("phong");
+				phong.use();
+				phong.setUniform("uDiffuseTex", 0);
+				phong.setUniform("uIsReflector", false);
+				phong.setUniform("uReflectorMode", 0);
+				phong.setUniform("uRenderMode", 0);
+				texture.bind(0);
+
+				for (const auto& obj : objects) {
+					if (&obj == reflector_obj) {
+						continue;
+					}
+					obj.draw(phong, cube_view_proj, STATE.average_lines, STATE.draw_textures);
+				}
+			}
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glViewport(original_viewport[0], original_viewport[1], original_viewport[2], original_viewport[3]);
+		}
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glEnable(GL_DEPTH_TEST);
@@ -229,12 +333,46 @@ auto main(int argc, char* args[]) -> int {
 
 		glm::mat4 view_proj = camera.getProj() * camera.getView();
 
+		{
+			glDepthFunc(GL_LEQUAL);
+			const static Shader& skybox = programs.at("skybox");
+			skybox.use();
+
+			skybox.setUniform("projection", camera.getProj());
+			skybox.setUniform("view", camera.getView());
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skybox_cubemap);
+			skybox.setUniform("skybox", 0);
+
+			glDisable(GL_CULL_FACE);
+			const static auto& mesh = get_mesh("CUBE");
+			mesh->draw(false);
+			glEnable(GL_CULL_FACE);
+
+			glDepthFunc(GL_LESS);
+		}
+
 		const static Shader& phong = programs.at("phong");
 		phong.use();
 		phong.setUniform("uDiffuseTex", 0);
+		phong.setUniform("uEnvCubeMap", 1);
+		phong.setUniform("uCamPos", camera.getPosition());
 		texture.bind(0);
 
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+
 		for (const auto& obj : objects) {
+			if (obj.m.reflector) {
+				phong.setUniform("uIsReflector", true);
+				phong.setUniform("uReflectorMode", STATE.render_mode);
+				phong.setUniform("uIOR", obj.m.ior);
+			} else {
+				phong.setUniform("uIsReflector", false);
+				phong.setUniform("uReflectorMode", 0);
+				phong.setUniform("uIOR", 1.0f);
+			}
 			obj.draw(phong, view_proj, STATE.average_lines, STATE.draw_textures);
 		}
 
@@ -247,29 +385,13 @@ auto main(int argc, char* args[]) -> int {
 			}
 		}
 
-		// skybox
-		{
-			glDepthFunc(GL_LEQUAL);
-			const static Shader& skybox = programs.at("skybox");
-			skybox.use();
-
-			skybox.setUniform("projection", camera.getProj());
-			skybox.setUniform("view", camera.getView());
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
-			skybox.setUniform("skybox", 0);
-
-			glDisable(GL_CULL_FACE);
-			const static auto& mesh = get_mesh("CUBE");
-			mesh->draw(false);
-			glEnable(GL_CULL_FACE);
-
-			glDepthFunc(GL_LESS);
-		}
-
 		SDL_GL_SwapWindow(window);
 	}
+
+	glDeleteTextures(1, &skybox_cubemap);
+	glDeleteTextures(1, &cubemap);
+	glDeleteFramebuffers(6, cube_fbo);
+	glDeleteRenderbuffers(1, &depth_rbo);
 
 	SDL_GL_DestroyContext(context);
 	SDL_DestroyWindow(window);
