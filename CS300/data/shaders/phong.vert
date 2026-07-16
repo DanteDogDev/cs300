@@ -12,18 +12,21 @@ uniform mat4 uView;
 
 uniform mat4 uLightSpaceMat;
 
+uniform mat4 uNormalMatrix;
+
 out vec3 vFragPos;
 out vec2 vTexCoord;
-
 out mat3 TBN;
-
-// out vec4 vFragPosLightSpace;
+out vec3 vWorldPos;
+out vec3 vWorldNormal;
 
 void main() {
 	vTexCoord = aTexCoord;
 	vec4 worldPos = uModel * vec4(aPos, 1.0);
-	vFragPos = (uView * uModel * vec4(aPos, 1.0)).xyz;
-	// vFragPosLightSpace = uLightSpaceMat * worldPos;
+	vWorldPos = worldPos.xyz;
+	vWorldNormal = normalize(mat3(uNormalMatrix) * aNormal);
+
+	vFragPos = (uView * worldPos).xyz;
 
 	vec3 N = normalize(mat3(transpose(inverse(uView * uModel))) * aNormal);
 	vec3 T = normalize(vec3(uView * uModel * vec4(aTangent, 0.0)));
