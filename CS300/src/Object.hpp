@@ -21,7 +21,8 @@ public:
 	    const glm::vec3& sca = glm::vec3(1.0f),             //
 	    float shininess = 0.0f,                             //
 	    const std::vector<Animations::Anim>& anims = {},    //
-	    bool reflector = false                              //
+	    bool reflector = false,                             //
+	    float ior = 1.0f                                    //
 	);
 
 	void draw(const Shader& shader, const glm::mat4& view_proj, bool averaged_normals, bool draw_textures) const;
@@ -45,5 +46,6 @@ private:
 		float shininess = 0;
 		std::vector<Animations::Anim> anims;
 		bool reflector = false;
+		float ior = 1.0f;
 	} m;
 };
